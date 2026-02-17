@@ -1,0 +1,15 @@
+com\user\service\controller\AuthController.class
+com\user\service\config\OpenApiConfig.class
+com\user\service\client\RewardsClient.class
+com\user\service\model\CustomerProfile.class
+com\user\service\dto\CustomerProfileDto.class
+com\user\service\config\SecurityConfig.class
+com\user\service\model\Role.class
+com\user\service\service\UserService.class
+com\user\service\UserServiceApplication.class
+com\user\service\model\User.class
+com\user\service\repository\UserRepository.class
+com\user\service\repository\CustomerProfileRepository.class
+com\user\service\dto\LoginDto.class
+com\user\service\dto\UserDto.class
+com\user\service\client\CustomerServiceClient.class

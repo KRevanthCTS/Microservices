@@ -1,0 +1,122 @@
+.offers-page{padding:16px}
+.grid.cols-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:stretch}
+.card{background:#fff;padding:16px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.08);max-height:calc(100vh - 100px)}
+.card:first-child{overflow-y:auto}
+.card:last-child{overflow-y:auto}
+
+.card:first-child::-webkit-scrollbar{width:8px}
+.card:first-child::-webkit-scrollbar-track{background:#f1f1f1;border-radius:10px}
+.card:first-child::-webkit-scrollbar-thumb{background:#c1c1c1;border-radius:10px}
+.card:first-child::-webkit-scrollbar-thumb:hover{background:#a8a8a8}
+.card:last-child::-webkit-scrollbar{width:8px}
+.card:last-child::-webkit-scrollbar-track{background:#f1f1f1;border-radius:10px}
+.card:last-child::-webkit-scrollbar-thumb{background:#c1c1c1;border-radius:10px}
+.card:last-child::-webkit-scrollbar-thumb:hover{background:#a8a8a8}
+.input{width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;box-sizing:border-box;font-size:14px}
+.input:focus{outline:none;border-color:#0066cc}
+textarea.input{min-height:80px;resize:vertical}
+label{display:block;margin-top:12px;margin-bottom:4px;font-weight:500;font-size:14px;color:#333}
+
+.btn{display:inline-block;padding:10px 16px;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-weight:500;text-align:center;transition:all 0.2s;min-width:100px}
+.btn-primary{background:#0066cc;color:#fff}
+.btn-primary:hover{background:#0052a3}
+.btn-danger{background:#dc3545;color:#fff}
+.btn-danger:hover{background:#c82333}
+.button{display:inline-block;background:#0066cc;color:#fff;border:none;padding:10px 16px;border-radius:6px;cursor:pointer;font-size:14px;font-weight:500;min-width:120px}
+.button:hover{background:#0052a3}
+
+.offers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:4px}
+.offer-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s}
+.offer-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+.offer-card-img{width:100%;height:140px;object-fit:cover}
+.offer-card-body{padding:14px}
+.offer-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.offer-card-header h4{margin:0;font-size:16px;font-weight:600;color:#1a1a1a}
+.offer-field{display:flex;gap:6px;margin-bottom:8px;font-size:13px;flex-wrap:wrap}
+.field-label{font-weight:600;color:#374151;min-width:85px}
+.field-value{color:#1f2937;flex:1;word-break:break-word}
+.offer-category{margin:0 0 6px;font-size:13px;color:#666;font-weight:500}
+.offer-desc{margin:0 0 12px;font-size:13px;color:#555;line-height:1.5;word-break:break-word}
+.offer-meta{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.offer-actions{display:flex;gap:8px;flex-wrap:wrap}
+.offer-actions .btn{flex:1;min-width:100px}
+
+.badge{display:inline-block;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:500}
+.badge-active{background:#d1fae5;color:#065f46}
+.badge-inactive{background:#f3f4f6;color:#6b7280}
+.badge{background:#e0e7ff;color:#3730a3}
+.error{color:#dc3545;font-size:13px;margin-top:6px}
+
+/* Tablet landscape and smaller desktops */
+@media (max-width:1024px){
+  .grid.cols-2{gap:12px}
+  .offers-grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+  .offer-card-img{height:130px}
+}
+
+/* Tablet portrait */
+@media (max-width:900px){
+  .grid.cols-2{grid-template-columns:1fr}
+  .card{max-height:none}
+  .offers-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+  .offer-card-header h4{font-size:15px}
+  .offer-field{font-size:12px}
+  .btn{padding:8px 14px;font-size:13px;min-width:90px}
+}
+
+/* Large phones and small tablets */
+@media (max-width:768px){
+  .offers-page{padding:14px}
+  .card{padding:14px}
+  .offers-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .offer-card-body{padding:12px}
+  .offer-card-img{height:120px}
+  .offer-meta{gap:6px}
+  .badge{padding:3px 8px;font-size:11px}
+}
+
+/* Standard phones */
+@media (max-width:600px){
+  .offers-page{padding:12px}
+  .card{padding:12px;max-height:none;border-radius:8px}
+  .offers-grid{grid-template-columns:1fr;gap:12px}
+  .offer-card{border-radius:8px}
+  .offer-card-header{flex-direction:column;align-items:flex-start}
+  .offer-card-header h4{font-size:15px}
+  .offer-actions{flex-direction:column;gap:6px}
+  .offer-actions .btn{width:100%;min-width:auto;padding:10px}
+  .field-label{min-width:auto;width:100%}
+  .offer-field{flex-direction:column;gap:2px}
+  .input{padding:12px 10px}
+  label{margin-top:10px}
+  .btn{min-width:auto}
+  .button{min-width:auto;width:100%}
+}
+
+/* Small phones */
+@media (max-width:480px){
+  .offers-page{padding:8px}
+  .card{padding:10px;max-height:none;border-radius:6px}
+  .offer-card-body{padding:10px}
+  .offer-card-img{height:100px}
+  .offer-card-header h4{font-size:14px}
+  .input{font-size:16px;padding:12px 10px}
+  label{font-size:13px;margin-top:8px}
+  textarea.input{min-height:60px}
+  .offer-desc{font-size:12px;margin-bottom:10px}
+  .offer-meta{margin-bottom:10px}
+  .badge{font-size:10px;padding:2px 6px}
+  .btn{font-size:13px;padding:10px 12px}
+  .error{font-size:12px}
+}
+
+/* Extra small phones */
+@media (max-width:360px){
+  .offers-page{padding:6px}
+  .card{padding:8px}
+  .offer-card-body{padding:8px}
+  .offer-card-img{height:90px}
+  .offer-card-header h4{font-size:13px}
+  .offer-field{font-size:11px}
+  .btn{padding:8px 10px;font-size:12px}
+}
