@@ -9,17 +9,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cts.dto.ClaimRequest;
+import com.cts.dto.FraudTransactionRequest;
 import com.cts.dto.OfferDto;
 import com.cts.dto.RedeemRequest;
 import com.cts.entity.CustomerProfile;
 import com.cts.entity.Redemption;
 import com.cts.entity.Transaction;
+import com.cts.feign.FraudDetectionClient;
 import com.cts.feign.PromotionFeignClient;
 import com.cts.repository.CustomerProfilerepository;
 import com.cts.repository.RedemptionRepository;
 import com.cts.repository.TransactionRepository;
-import com.cts.feign.FraudDetectionClient;
-import com.cts.dto.FraudTransactionRequest;
+
 @Service
 public class Pointsservice {
 
@@ -33,10 +34,10 @@ public class Pointsservice {
     private CustomerProfilerepository customerProfileRepository;
     @Autowired
     private TransactionRepository transactionRepository;
-    
+
     @Autowired
     private PromotionFeignClient promotionFeignClient;
-    
+
     @Autowired
     private RedemptionRepository redemptionRepository;
 
@@ -44,38 +45,35 @@ public class Pointsservice {
     private CustomerProfilerepository custrepo;
 
     @Autowired
-    private FraudDetectionClient fraudDetectionClient;  
-
-
+    private FraudDetectionClient fraudDetectionClient;
 
     public CustomerProfile getCutomerId(Long id) {
 
         return customerProfileRepository.findByUserId(id);
 
     }
- 
+
     @Transactional
     public CustomerProfile registerUser(CustomerProfile registerRequest) {
-                // Create CustomerProfile entity linked to the User
+        // Create CustomerProfile entity linked to the User
         CustomerProfile profile = new CustomerProfile();
         profile.setUserId(registerRequest.getUserId()); // Link profile to user ID
         profile.setCustomerName(registerRequest.getCustomerName());
         profile.setLoyaltyTier("BRONZE"); // Default tier
         profile.setPointsBalance(INITIAL_POINTS); // Start with initial points
         profile.setLifetimePoints(INITIAL_POINTS);
+        recalculateTier(profile); // Set tier based on initial points
         profile.setNextExpiry(LocalDate.now().plusMonths(4)); // Points expire in 4 months
         profile.setPreferences(registerRequest.getPreferences());
         profile.setCommunication(registerRequest.getCommunication());
-        
+
         return custrepo.save(profile);
     }
-   
-
 
     /**
-     * Redeem an offer for a user
-     * Deducts points from user's profile and creates a redemption record
-     * Fetches offer details from Promotion Service via Feign client
+     * Redeem an offer for a user Deducts points from user's profile and creates
+     * a redemption record Fetches offer details from Promotion Service via
+     * Feign client
      */
     @Transactional
     public Redemption redeemOffer(Long userId, RedeemRequest request) {
@@ -83,19 +81,19 @@ public class Pointsservice {
         if (profile == null) {
             throw new RuntimeException("Customer profile not found for user: " + userId);
         }
-    
+
         // Fetch specific offer details from Promotion Service via Feign
         OfferDto offer = promotionFeignClient.getOfferById(request.getOfferId());
-        
+
         // CustomerProfile profile = custrepo.findById(userId)
         //     .orElseThrow(() -> new RuntimeException("Customer profile not found for user: " + userId));
         if (profile.getPointsBalance() < offer.getCostPoints()) {
             throw new RuntimeException("Insufficient points");
         }
-        
+
         // Deduct points
         profile.setPointsBalance(profile.getPointsBalance() - offer.getCostPoints());
-        
+
         // Create Transaction
         Transaction transaction = new Transaction();
         transaction.setExternalId("RED-" + System.currentTimeMillis());
@@ -106,7 +104,6 @@ public class Pointsservice {
         transaction.setStore("Online"); // Assuming online redemption, can be dynamic based on offer
         transaction.setDate(LocalDate.now());
         transactionRepository.save(transaction);
-
 
         sendToFraudDetection(transaction);
         // Create Redemption record
@@ -124,21 +121,41 @@ public class Pointsservice {
         return redemption;
     }
 
-  private static final List<String> TIER_ORDER = List.of("BRONZE", "SILVER", "GOLD", "PLATINUM");
+    private static final List<String> TIER_ORDER = List.of("BRONZE", "SILVER", "GOLD", "PLATINUM");
+
+    /**
+     * Recalculate and update the user's loyalty tier based on lifetime points.
+     * Thresholds: Bronze: 0 – 999 Silver: 1000 – 4999 Gold: 5000 – 9999
+     * Platinum: 10000+
+     */
+    private void recalculateTier(CustomerProfile profile) {
+        int lifetime = profile.getLifetimePoints();
+        String newTier;
+        if (lifetime >= 10000) {
+            newTier = "PLATINUM";
+        } else if (lifetime >= 5000) {
+            newTier = "GOLD";
+        } else if (lifetime >= 1000) {
+            newTier = "SILVER";
+        } else {
+            newTier = "BRONZE";
+        }
+        profile.setLoyaltyTier(newTier);
+    }
 
     public List<OfferDto> getOffersByTier(String userTier) {
         // 1. Get all offers from the other service via Feign
         List<OfferDto> allOffers = promotionFeignClient.getAllOffers();
-        
+
         // 2. Prepare a list to store the results
         List<OfferDto> eligibleOffers = new ArrayList<>();
 
         // 3. Determine the user's tier rank
         int userTierRank = TIER_ORDER.indexOf(userTier.toUpperCase());
-        
+
         // If the tier is unknown, default to the lowest (Bronze)
         if (userTierRank == -1) {
-            userTierRank = 0; 
+            userTierRank = 0;
         }
 
         // 4. Create a sub-list of all allowed tiers (e.g., ["BRONZE", "SILVER"])
@@ -146,12 +163,17 @@ public class Pointsservice {
 
         // 5. Use a standard loop to filter
         for (OfferDto offer : allOffers) {
-            if (offer.getTierLevel() != null  && offer.getActive()) { // Check if tier level is not null and offer is active
-                String offerTier = offer.getTierLevel().toUpperCase();
-                
-                // Check if the offer's tier is within the user's allowed list
-                if (allowedTiers.contains(offerTier)) {
+            if (offer.getActive()) {
+                String offerTierRaw = offer.getTierLevel();
+                if (offerTierRaw == null || offerTierRaw.trim().isEmpty() || "All".equalsIgnoreCase(offerTierRaw)) {
+                    // Null/empty/All means available to all tiers
                     eligibleOffers.add(offer);
+                } else {
+                    String offerTier = offerTierRaw.toUpperCase();
+                    // Check if the offer's tier is within the user's allowed list
+                    if (allowedTiers.contains(offerTier)) {
+                        eligibleOffers.add(offer);
+                    }
                 }
             }
         }
@@ -159,22 +181,24 @@ public class Pointsservice {
         return eligibleOffers;
     }
 
-   /**
-     * Claim an offer for a user
-     * Only adds points to user's profile and creates a transaction entry
-     * Does NOT create a redemption record
+    /**
+     * Claim an offer for a user Only adds points to user's profile and creates
+     * a transaction entry Does NOT create a redemption record
      */
     @Transactional
     public ClaimRequest claimOffer(ClaimRequest claimRequest, Long userId) {
         // Fetch user
         CustomerProfile profile = custrepo.findByUserId(userId);
-if (profile == null) { throw new RuntimeException("Customer profile not found for user: " + userId); }
+        if (profile == null) {
+            throw new RuntimeException("Customer profile not found for user: " + userId);
+        }
         // Add points to profile
         int previousBalance = profile.getPointsBalance();
         profile.setPointsBalance(previousBalance + claimRequest.getPoints());
         profile.setLifetimePoints(profile.getLifetimePoints() + claimRequest.getPoints());
+        recalculateTier(profile);
         custrepo.save(profile);
-        
+
         // Create transaction record only (no redemption entry)
         Transaction transaction = new Transaction();
         transaction.setUserId(userId);
@@ -188,12 +212,11 @@ if (profile == null) { throw new RuntimeException("Customer profile not found fo
         String transactionId = "CLM-" + System.currentTimeMillis();
         transaction.setExternalId(transactionId);
         transactionRepository.save(transaction);
-        
+
         // Return response DTO
-      
-          // Send to Fraud Detection Service
+        // Send to Fraud Detection Service
         sendToFraudDetection(transaction);
-      
+
         return claimRequest;
     }
 
@@ -202,12 +225,11 @@ if (profile == null) { throw new RuntimeException("Customer profile not found fo
      */
     public List<Redemption> getRedemptionsByUserId(Long userId) {
         // Verify user exists
-       CustomerProfile profile = custrepo.findByUserId(userId);
+        CustomerProfile profile = custrepo.findByUserId(userId);
         if (profile == null) {
             throw new RuntimeException("Customer profile not found for user: " + userId);
         }
-            
-        
+
         // Return redemptions sorted by date descending
         return redemptionRepository.findByUserIdOrderByDateDesc(userId);
     }
@@ -217,7 +239,7 @@ if (profile == null) { throw new RuntimeException("Customer profile not found fo
      */
     public List<Transaction> getTransactionsByUserId(Long userId) {
         // Verify user exists
-      CustomerProfile profile = custrepo.findByUserId(userId);
+        CustomerProfile profile = custrepo.findByUserId(userId);
         if (profile == null) {
             throw new RuntimeException("Customer profile not found for user: " + userId);
         }
@@ -225,21 +247,17 @@ if (profile == null) { throw new RuntimeException("Customer profile not found fo
         return transactionRepository.findByUserIdOrderByDateDesc(userId);
     }
 
-
-
-
     /// Get all redemptions in the system (for admin view)
      public List<Redemption> getAllRedemptions() {
         return redemptionRepository.findAll();
     }
+
     /**
      * Get all offers available for a specific tier
      */
     // public List<Offers> getOffersByTier(String tier) {
     //     return offerRepository.findByTier(tier);
     // }
-
-       
     private void sendToFraudDetection(Transaction transaction) {
         try {
             // Only send REDEMPTIONS to fraud detection, not CLAIMS
@@ -247,10 +265,9 @@ if (profile == null) { throw new RuntimeException("Customer profile not found fo
             if (!"REDEMPTION".equals(transaction.getType())) {
                 return; // Skip fraud check for CLAIM transactions
             }
-           
+
             // Forward all REDEMPTION transactions to fraud detection.
             // Fraud_MS will apply the configured rules (Option A) and decide risk levels.
-           
             // Send to Fraud Detection Service
             FraudTransactionRequest request = new FraudTransactionRequest();
             request.setExternalId(transaction.getExternalId());
@@ -263,11 +280,11 @@ if (profile == null) { throw new RuntimeException("Customer profile not found fo
             request.setExpiry(transaction.getExpiry());
             request.setNote(transaction.getNote());
             request.setUserId(transaction.getUserId());
-           
+
             fraudDetectionClient.sendTransactionForFraudCheck(request);
         } catch (Exception e) {
             // Log error but don't fail the transaction
             System.err.println("Failed to send transaction to fraud detection: " + e.getMessage());
         }
     }
-}   
+}

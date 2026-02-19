@@ -6,7 +6,7 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- ✅ STABLE SPRING BOOT -->
+    <!-- STABLE SPRING BOOT -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -27,26 +27,26 @@
 
     <dependencies>
 
-        <!-- ✅ SPRING CLOUD GATEWAY (CORE) -->
+        <!-- SPRING CLOUD GATEWAY (CORE) -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-gateway</artifactId>
         </dependency>
 
-        <!-- ✅ EUREKA DISCOVERY CLIENT -->
+        <!-- EUREKA DISCOVERY CLIENT -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
 
-        <!-- ✅ SWAGGER / OPENAPI (FOR GATEWAY - WEBFLUX) -->
+        <!-- SWAGGER / OPENAPI (FOR GATEWAY - WEBFLUX) -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
             <version>2.5.0</version>
         </dependency>
 
-        <!-- ✅ ACTUATOR (OPTIONAL BUT RECOMMENDED) -->
+        <!-- ACTUATOR (OPTIONAL BUT RECOMMENDED) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
@@ -65,10 +65,28 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- JWT for gateway token validation -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.11.5</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.11.5</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.11.5</version>
+            <scope>runtime</scope>
+        </dependency>
 
     </dependencies>
 
-    <!-- ✅ SPRING CLOUD VERSION CONTROL -->
+    <!-- SPRING CLOUD VERSION CONTROL -->
     <dependencyManagement>
         <dependencies>
             <dependency>

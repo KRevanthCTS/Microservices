@@ -76,10 +76,19 @@ export default function Promotions() {
       setAnalytics(normalized);
     } catch (err) {
       setError(err?.message || "Unknown error");
-      setAnalytics([]);
     } finally {
       setLoading(false);
     }
+  }
+
+  function openAnalytics() {
+    try {
+      const el = document.getElementById("analytics-section");
+      if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth" });
+    } catch (e) {
+      // ignore
+    }
+    fetchAnalytics();
   }
  
   const categories = [
@@ -130,7 +139,7 @@ export default function Promotions() {
           <h3>Analytics</h3>
           <p>High-level metrics of ongoing campaigns.</p>
  
-          <button className="button" onClick={fetchAnalytics}>
+          <button className="button" onClick={openAnalytics}>
             Open Analytics
           </button>
  
@@ -175,7 +184,7 @@ export default function Promotions() {
         </div>
       </section>
  
-      <section className="section analytics-section">
+  <section id="analytics-section" className="section analytics-section">
         <h3>Analytics</h3>
         <div className="analytics-wrapper">
           {analytics.length > 0 ? (

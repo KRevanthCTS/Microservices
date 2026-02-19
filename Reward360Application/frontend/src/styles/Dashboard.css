@@ -1,19 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
 :root {
   --ps-grad-1: #7c3aed; /* violet */
   --ps-grad-2: #06b6d4; /* cyan */
   --ps-accent: #ffffff;
-  --ps-glass: rgba(255,255,255,0.08);
-  --ps-glass-border: rgba(255,255,255,0.16);
-  --ps-shadow: 0 10px 30px rgba(124,58,237,0.14);
+  --ps-glass: rgba(255, 255, 255, 0.08);
+  --ps-glass-border: rgba(255, 255, 255, 0.16);
+  --ps-shadow: 0 10px 30px rgba(124, 58, 237, 0.14);
 }
 
 .d-page {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 .d-card {
@@ -39,7 +39,11 @@
 
 /* Points Summary Card */
 .d-card.d-ps {
-  background: linear-gradient(135deg, var(--ps-grad-1) 0%, var(--ps-grad-2) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--ps-grad-1) 0%,
+    var(--ps-grad-2) 100%
+  );
   border: none;
   color: var(--ps-accent);
   padding: 32px;
@@ -122,9 +126,9 @@
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  color: rgba(255,255,255,0.95);
+  color: rgba(255, 255, 255, 0.95);
   font-size: 22px;
-  border: 1px solid rgba(255,255,255,0.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 4px 10px rgba(12, 7, 54, 0.12);
 }
 
@@ -138,18 +142,17 @@
   font-size: 18px;
   font-weight: 800;
   color: var(--ps-accent);
-  text-shadow: 0 1px 0 rgba(0,0,0,0.08);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
 }
 
 .d-ps-tier.d-ps-pill {
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 6px 10px;
   border-radius: 999px;
 }
 
 .d-ps-right {
-  
   text-align: right;
   background: var(--ps-glass);
   border: 1px solid var(--ps-glass-border);
@@ -416,6 +419,49 @@
 
   .d-card {
     padding: 18px;
+  }
+
+  .d-card.d-ps {
+    padding: 18px 14px;
+  }
+
+  .d-ps-title {
+    font-size: 18px;
+  }
+
+  .d-ps-right {
+    min-width: unset;
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+  }
+
+  .d-ps-right-value {
+    font-size: 32px;
+  }
+
+  .d-ps-right-label {
+    font-size: 12px;
+  }
+
+  .d-ps-avatar {
+    width: 42px;
+    height: 42px;
+    font-size: 18px;
+  }
+
+  .d-ps-name {
+    font-size: 15px;
+  }
+
+  .d-stat-value {
+    font-size: 22px;
+  }
+
+  .d-stat-icon {
+    font-size: 26px;
+    width: 40px;
+    height: 40px;
   }
 
   .d-table th,

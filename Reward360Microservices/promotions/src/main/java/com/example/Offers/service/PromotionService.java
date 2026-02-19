@@ -1,4 +1,5 @@
-package com.example.Offers.service; 
+package com.example.Offers.service;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +21,16 @@ public class PromotionService {
     private AnalyticsRepository analyticsRepo;
 
     /**
-     * Saves the promotion and immediately mirrors the
-     * ID, Title, Category, and CostPoints into the Analytics table.
+     * Saves the promotion and immediately mirrors the ID, Title, Category, and
+     * CostPoints into the Analytics table.
      */
     @Transactional
     public Promotion savePromotionWithAnalytics(Promotion promotion) {
+        // Normalize tierLevel: empty or null means the promotion applies to ALL tiers
+        if (promotion.getTierLevel() == null || promotion.getTierLevel().trim().isEmpty()) {
+            promotion.setTierLevel("All");
+        }
+
         // Step 1: Save the Promotion to generate the primary key (ID)
         Promotion savedPromo = promotionRepo.save(promotion);
 

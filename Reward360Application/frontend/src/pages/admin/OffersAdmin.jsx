@@ -2,16 +2,22 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import api from "../../api/client";
 import "../../styles/offersAdmin.css";
- 
+
+// This admin page aims to work with two API shapes found across environments:
+// 1) /admin/offers (simple admin endpoints)
+// 2) /api/promotions/promotions (promotion microservice)
+// We try the first and fall back to the second to make local dev easier.
+const ENDPOINT_CANDIDATES = ["/admin/offers", "/api/promotions/promotions"]
+
 export default function OffersAdmin() {
   const [searchParams] = useSearchParams();
   const [items, setItems] = useState([]);
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split("T")[0];
   const [o, setO] = useState({
     title: "",
     category: "",
     description: "",
-    costPoints: 0,
+    costPoints: "",
     imageUrl: "",
     tierLevel: "",
     startDate: "",
@@ -19,35 +25,64 @@ export default function OffersAdmin() {
   });
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState("");
+  const [activeEndpoint, setActiveEndpoint] = useState(null)
+
+  const resolveUrl = (pathSuffix = "") => {
+    if (!activeEndpoint) return null
+    return `${activeEndpoint}${pathSuffix}`
+  }
+
   const load = async () => {
-    try {
-      const { data } = await api.get("/api/promotions/promotions");
-      setItems(data);
-    } catch (e) {
-      setErr("Failed to load offers");
+    setErr("")
+    // If we already detected an endpoint, use it. Otherwise probe candidates.
+    if (activeEndpoint) {
+      try {
+        const { data } = await api.get(resolveUrl(""));
+        setItems(data);
+        return;
+      } catch (e) {
+        // if probe fails, clear active and retry below
+        setActiveEndpoint(null)
+      }
     }
+
+    for (const candidate of ENDPOINT_CANDIDATES) {
+      try {
+        const { data } = await api.get(candidate)
+        setActiveEndpoint(candidate)
+        setItems(data)
+        return
+      } catch (e) {
+        // try next candidate
+      }
+    }
+    setErr("Failed to load offers: no working API endpoint found")
   };
+
   useEffect(() => {
     load();
-    const category = searchParams.get('category');
-    const description = searchParams.get('description');
+    const category = searchParams.get("category");
+    const description = searchParams.get("description");
     if (category || description) {
-      setO(p => ({
+      setO((p) => ({
         ...p,
         category: category || p.category,
-        description: description || p.description
+        description: description || p.description,
       }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
+
   const validate = () => {
     if (!o.title.trim()) return "Title is required";
-    if (!o.category.trim()) return "Category is required";
+    // Category may be empty to indicate the offer applies to ALL categories
+    // (leave blank for All categories)
     if (!o.description.trim()) return "Description is required";
-    if (!o.costPoints || o.costPoints === '') return "Cost points is required";
-    if (Number.isNaN(Number(o.costPoints)) || Number(o.costPoints) < 0)
+    if (Number.isNaN(Number(o.costPoints)) || o.costPoints === "" || Number(o.costPoints) < 0)
       return "Cost points must be a non-negative number";
     return "";
   };
+
   const submit = async (e) => {
     e.preventDefault();
     setErr("");
@@ -58,23 +93,34 @@ export default function OffersAdmin() {
       return;
     }
     try {
-      const payload = { ...o, costPoints: parseInt(o.costPoints, 10), active: true };
+  const payload = { ...o };
+  payload.costPoints = Number(o.costPoints) || 0;
+  // Auto-publish: mark new offers active by default
+  payload.active = true;
+      // If tierLevel is empty string, treat as null (All tiers)
       if (!payload.tierLevel) payload.tierLevel = null;
-      const response = await api.post("/api/promotions/promotions", payload);
-      setMsg("Offer created and published successfully");
+      // If category is empty or whitespace, treat as null (All categories)
+      if (!payload.category || !payload.category.trim()) payload.category = null;
+
+      // Try to post to the detected endpoint; if none detected, probe in load()
+      const postTo = activeEndpoint || ENDPOINT_CANDIDATES[0]
+      await api.post(`${postTo}`, payload)
+      setMsg("Offer created successfully")
       setO({
         title: "",
         category: "",
         description: "",
-        costPoints: 0,
+        costPoints: "",
         imageUrl: "",
         tierLevel: "",
         startDate: "",
         endDate: "",
-      });
-      load();
+      })
+      // reload list (keep detected endpoint)
+      load()
     } catch (ex) {
-      setErr("Failed to create offer");
+      console.error(ex);
+      setErr(ex?.response?.data?.message || ex?.message || "Failed to create offer");
     }
   };
   return (
@@ -96,7 +142,6 @@ export default function OffersAdmin() {
             placeholder="e.g., Electronics"
             value={o.category}
             onChange={(e) => setO((p) => ({ ...p, category: e.target.value }))}
-            required
           />
           <label>Description</label>
           <textarea
@@ -110,17 +155,16 @@ export default function OffersAdmin() {
           />
           <label>Cost Points</label>
           <input
-            className="input"
-            type="text"
+            className="input no-spinner"
+            type="number"
             placeholder="e.g., 350"
             value={o.costPoints}
-            onChange={(e) => {
-              const val = e.target.value;
-              if (val === '' || /^[0-9]+$/.test(val)) {
-                setO((p) => ({ ...p, costPoints: val }));
-              }
-            }}
-            required
+            onChange={(e) =>
+              setO((p) => ({
+                ...p,
+                costPoints: e.target.value === "" ? "" : parseInt(e.target.value, 10),
+              }))
+            }
           />
           <label>Tier Level</label>
           <select
@@ -134,22 +178,28 @@ export default function OffersAdmin() {
             <option>Gold</option>
             <option>Platinum</option>
           </select>
-          <label>Start Date</label>
-          <input
-            className="input"
-            type="date"
-            min={today}
-            value={o.startDate}
-            onChange={(e) => setO((p) => ({ ...p, startDate: e.target.value }))}
-          />
-          <label>End Date</label>
-          <input
-            className="input"
-            type="date"
-            min={o.startDate || today}
-            value={o.endDate}
-            onChange={(e) => setO((p) => ({ ...p, endDate: e.target.value }))}
-          />
+          <div className="date-row">
+            <div className="date-field">
+              <label>Start Date</label>
+              <input
+                className="input"
+                type="date"
+                min={today}
+                value={o.startDate}
+                onChange={(e) => setO((p) => ({ ...p, startDate: e.target.value }))}
+              />
+            </div>
+            <div className="date-field">
+              <label>End Date</label>
+              <input
+                className="input"
+                type="date"
+                min={o.startDate || today}
+                value={o.endDate}
+                onChange={(e) => setO((p) => ({ ...p, endDate: e.target.value }))}
+              />
+            </div>
+          </div>
           <label>Image URL (optional)</label>
           <input
             className="input"
@@ -215,41 +265,45 @@ export default function OffersAdmin() {
                     <span className="badge">{i.costPoints} pts</span>
                     <span className="badge">Tier: {i.tierLevel || "All"}</span>
                   </div>
-                  <div className="offer-actions">
-                    <button
-                      className="btn btn-primary"
-                      onClick={async () => {
-                        try {
-                          await api.put(`/api/promotions/promotions/${i.id}`);
-                          load();
-                        } catch (e) {
-                          console.error(e);
-                          setErr(
-                            e?.response?.data?.message || "Failed to toggle"
-                          );
-                        }
-                      }}
-                    >
-                      {i.active ? "Unpublish" : "Publish"}
-                    </button>
-                    <button
-                      className="btn btn-danger"
-                      onClick={async () => {
-                        if (!window.confirm("Delete this offer?")) return;
-                        try {
-                          await api.delete(`/api/promotions/promotions/${i.id}`);
-                          load();
-                        } catch (e) {
-                          console.error(e);
-                          setErr(
-                            e?.response?.data?.message || "Failed to delete"
-                          );
-                        }
-                      }}
-                    >
-                      Delete
-                    </button>
-                  </div>
+                          <div className="offer-actions">
+                            <button
+                              className="btn btn-primary"
+                              onClick={async () => {
+                                try {
+                                  const ep = activeEndpoint || ENDPOINT_CANDIDATES[0]
+                                  // support toggle endpoints for both API shapes
+                                  if (ep.startsWith('/admin')) {
+                                    await api.put(`${ep}/${i.id}/toggle`)
+                                  } else {
+                                    // promotions microservice: PUT to /{id} used for toggle/publish in some deployments
+                                    await api.put(`${ep}/${i.id}`)
+                                  }
+                                  // refresh list without re-probing endpoint
+                                  load()
+                                } catch (e) {
+                                  console.error(e);
+                                  setErr(e?.response?.data?.message || "Failed to toggle")
+                                }
+                              }}
+                            >
+                              {i.active ? "Unpublish" : "Publish"}
+                            </button>
+                            <button
+                              className="btn btn-danger"
+                              onClick={async () => {
+                                if (!window.confirm("Delete this offer?")) return;
+                                try {
+                                  await api.delete(`${activeEndpoint || ENDPOINT_CANDIDATES[0]}/${i.id}`)
+                                  load()
+                                } catch (e) {
+                                  console.error(e);
+                                  setErr(e?.response?.data?.message || "Failed to delete")
+                                }
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </div>
                 </div>
               </div>
             ))}

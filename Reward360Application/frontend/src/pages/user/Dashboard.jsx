@@ -38,7 +38,7 @@ export default function Dashboard() {
   const [claimedActivities, setClaimedActivities] = useState([])
 
   // Ensure storage is unique per user to prevent data bleed
-  const userStorageKey = user ? `claimedActivities_${user.userId}` : null
+  const userStorageKey = user ? `claimedActivities_${user.id || user.userId}` : null
 
   useEffect(() => {
     if (userStorageKey) {
@@ -56,12 +56,12 @@ export default function Dashboard() {
   if (loading || !user) return <div className="d-page">Loading...</div>
 
 
-    const nextExpiry = user.nextExpiry ?? '23/2/2026'
+    const nextExpiry = (user.profile && user.profile.nextExpiry) || user.nextExpiry || '23/2/2026'
   const today = new Date().toISOString().split('T')[0]
   const todayTransactions = transactions.filter(t => t.date === today)
   const pointsEarnedToday = todayTransactions.reduce((sum, t) => sum + (t.pointsEarned || 0), 0)
   const pointsRedeemedToday = todayTransactions.reduce((sum, t) => sum + (t.pointsRedeemed || 0), 0)
-  const totalPointsEarned = user.lifetimePoints ?? 0
+  const totalPointsEarned = (user.profile && user.profile.lifetimePoints) ?? user.lifetimePoints ?? 0
   const activities = [
     { title: 'Daily Login Bonus', points: 50, code: 'LOGIN' },
     { title: 'Write a Product Review', points: 100, code: 'REVIEW' },
@@ -79,13 +79,13 @@ export default function Dashboard() {
             <div className="d-ps-sub">
               <div className="d-ps-identity">
                 <div className="d-ps-avatar" aria-hidden>
-                  {user.customerName ? user.customerName.charAt(0).toUpperCase() : '?'}
+                  {(user.name || user.customerName) ? (user.name || user.customerName).charAt(0).toUpperCase() : '?'}
                 </div>
                 <div className="d-ps-meta">
-                  <div className="d-ps-name">{user.customerName}</div>
+                  <div className="d-ps-name">{user.name || user.customerName}</div>
                   <div className="d-ps-tier d-ps-pill">
                     <span className="d-ps-pill-label">Tier</span>
-                    <span className="d-ps-pill-value">{user.loyaltyTier}</span>
+                    <span className="d-ps-pill-value">{(user.profile && user.profile.loyaltyTier) || user.loyaltyTier}</span>
                   </div>
                 </div>
               </div>
@@ -93,7 +93,7 @@ export default function Dashboard() {
           </div>
           <div className="d-ps-right">
             <div className="d-ps-right-label">Current Balance</div>
-            <div className="d-ps-right-value">{user.pointsBalance ?? 0}</div>
+            <div className="d-ps-right-value">{(user.profile && user.profile.pointsBalance) ?? user.pointsBalance ?? 0}</div>
           </div>
         </div>
       </div>

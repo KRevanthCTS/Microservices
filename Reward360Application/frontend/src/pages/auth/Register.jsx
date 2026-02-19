@@ -5,6 +5,8 @@ import api from '../../api/client'
 export default function Register(){
   const [f, setF] = useState({ name:'', email:'', phone:'', password:'', role:'USER', preferences:[], communication:'Email' })
   const [err, setErr] = useState({})
+  const [showPassword, setShowPassword] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
   const navigate = useNavigate()
 
   const validate = ()=>{
@@ -34,20 +36,21 @@ export default function Register(){
         name:f.name, email:f.email, phone:f.phone, password:f.password,
         role:f.role, preferences:f.preferences.join(','), communication:f.communication
       })
-      navigate('/login')
+      setShowSuccess(true)
     }catch(ex){ setErr({ api:'Registration failed' }) }
   }
 
   return (
+    <>
     <div className="card" style={{margin:'20px auto', maxWidth:720}}>
       <h2 style={{textAlign:'center',fontSize:'30px'}}>Create account</h2>
   <form onSubmit={submit} className="grid cols-2" style={{ gap: 8 }}> 
         <div>
           <label style={{fontSize: '16px'}}>Register as</label>
-          <select className="input" name="role" value={f.role} onChange={onChange}>
-            <option>USER</option>
-            <option>ADMIN</option>
-          </select>
+          <ul className="role-list" style={{margin:6}}>
+            <input type="radio" name="role" value="USER" checked={f.role === 'USER'} onChange={onChange} /> User
+            <input type="radio" name="role" value="ADMIN" checked={f.role === 'ADMIN'} onChange={onChange} /> Admin
+          </ul>
         </div>
         <div>
           <label style={{fontSize: '16px'}}>Name</label>
@@ -66,7 +69,47 @@ export default function Register(){
         </div>
         <div>
           <label style={{fontSize: '16px'}}>Password</label>
-          <input className="input" type="password" name="password" value={f.password} onChange={onChange} placeholder="Enter your Password"/>
+          <div style={{position: 'relative'}}>
+            <input
+              className="input"
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              value={f.password}
+              onChange={onChange}
+              placeholder="Enter your Password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(s => !s)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-pressed={showPassword}
+              style={{
+                position: 'absolute',
+                right: 8,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                padding: 4,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center'
+              }}
+            >
+              {showPassword ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M1.5 12s4-7.5 10.5-7.5S22.5 12 22.5 12s-4 7.5-10.5 7.5S1.5 12 1.5 12z" stroke="#0b5ed7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="12" cy="12" r="3" stroke="#0b5ed7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19.5C5.5 19.5 1.5 12 1.5 12c1.46-2.57 3.76-4.7 6.54-6.02" stroke="#0b5ed7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M3 3l18 18" stroke="#0b5ed7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M9.88 9.88A3 3 0 0 0 14.12 14.12" stroke="#0b5ed7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </button>
+          </div>
           {err.password && <div className="error">{err.password}</div>}
         </div>
         <div>
@@ -93,5 +136,17 @@ export default function Register(){
         </div>
       </form>
     </div>
+
+    {showSuccess && (
+      <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',display:'grid',placeItems:'center',zIndex:50}}>
+        <div className="card" style={{maxWidth:400,textAlign:'center',padding:'32px 24px'}} onClick={(e)=>e.stopPropagation()}>
+          <div style={{fontSize:56,marginBottom:12}}>🎉</div>
+          <h3 style={{margin:'0 0 8px',color:'#059669',fontSize:22}}>Registration Successful!</h3>
+          <p style={{color:'#475569',marginBottom:20}}>Your account has been created successfully. You can now log in with your credentials.</p>
+          <button className="button" onClick={()=>navigate('/login')} style={{minWidth:140}}>Go to Login</button>
+        </div>
+      </div>
+    )}
+    </>
   )
 }

@@ -138,18 +138,34 @@ function ReportGenerator() {
         XLSX.writeFile(workbook, `${metric}-history.xlsx`);
       } else if (format === "pdf") {
         const doc = new jsPDF();
-        doc.setFontSize(12);
-        doc.text(`${metric} History`, 14, 15);
+        const title = metric.charAt(0).toUpperCase() + metric.slice(1) + " Report";
+
+        // Replace ₹ with Rs. in all row data (jsPDF default fonts don't support ₹)
+        const sanitizedRows = rows.map(row =>
+          row.map(cell => (typeof cell === "string" ? cell.replace(/₹/g, "Rs.") : cell))
+        );
+
+        // Title
+        doc.setFontSize(18);
+        doc.setFont("helvetica", "bold");
+        doc.text(title, doc.internal.pageSize.getWidth() / 2, 18, { align: "center" });
+
+        // Subtitle / date line
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(100);
+        doc.text(`Generated on ${new Date().toLocaleDateString()}`, doc.internal.pageSize.getWidth() / 2, 25, { align: "center" });
+        doc.setTextColor(0);
 
         autoTable(doc, {
           head: [header],
-          body: rows,
-          startY: 25,
+          body: sanitizedRows,
+          startY: 32,
           styles: { fontSize: 10 },
           headStyles: { fillColor: [79, 70, 229] },
         });
 
-        doc.save(`${metric}-history.pdf`);
+        doc.save(`${metric}-report.pdf`);
       }
       
       setMessage(`Successfully exported ${metric} data as ${format.toUpperCase()}!`);

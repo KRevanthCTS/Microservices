@@ -5,14 +5,22 @@ import "../../styles/Offer.css";
 export default function Offers() {
   const { user, offers, redeemOffer, loading, redemptions } = useUser();
   const [confirm, setConfirm] = useState(null);
+  const [insufficientModal, setInsufficientModal] = useState(null);
   const [category, setCategory] = useState("All");
 
   if (loading || !user) return <div className="offers-page">Loading...</div>;
 
-  const open = (o) => setConfirm(o);
-  const close = () => setConfirm(null);
-
   const redeemedTitles = new Set((redemptions || []).map((r) => r.offerTitle));
+  const pointsBalance = (user.profile && user.profile.pointsBalance) || user.pointsBalance || 0;
+
+  const open = (o) => {
+    if (pointsBalance < o.costPoints) {
+      setInsufficientModal(o);
+      return;
+    }
+    setConfirm(o);
+  };
+  const close = () => { setConfirm(null); setInsufficientModal(null); };
 
   const redeem = async () => {
     if (!confirm) return;
@@ -33,21 +41,21 @@ export default function Offers() {
             <div>
               <h3 className="o-hero-title">Member Offers</h3>
               <div className="o-hero-sub">
-                <span className="o-user-chip">
-                  <span className="o-user-dot" />
-                  {user.customerName}
-                </span>
-                <span className="o-sep">•</span>
-                <span className="o-tier">
-                  Tier:&nbsp;
-                  <strong>{user.loyaltyTier || "Bronze"}</strong>
-                </span>
+                  <span className="o-user-chip">
+                    <span className="o-user-dot" />
+                    {user.name || user.customerName}
+                  </span>
+                  <span className="o-sep">•</span>
+                  <span className="o-tier">
+                    Tier:&nbsp;
+                    <strong>{(user.profile && user.profile.loyaltyTier) || user.loyaltyTier || "Bronze"}</strong>
+                  </span>
               </div>
             </div>
 
-            <div className="o-hero-balance-badge" title="Current Points Balance">
+              <div className="o-hero-balance-badge" title="Current Points Balance">
               <span className="o-balance-label">Balance</span>
-              <span className="o-balance-value">{user.pointsBalance ?? 0}</span>
+              <span className="o-balance-value">{pointsBalance}</span>
               <span className="o-balance-unit">pts</span>
             </div>
           </div>
@@ -85,8 +93,6 @@ export default function Offers() {
                     <button
                       className="o-btn"
                       onClick={() => open(o)}
-                      disabled={user.pointsBalance < o.costPoints}
-                      style={{ opacity: user.pointsBalance < o.costPoints ? 0.6 : 1 }}
                     >
                       Redeem
                     </button>
@@ -118,6 +124,35 @@ export default function Offers() {
                   <button className="o-btn o-btn-ghost" onClick={close}>Cancel</button>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {insufficientModal && (
+        <div className="o-modal-backdrop" onClick={close} aria-hidden="true">
+          <div className="o-modal-card o-card" onClick={(e) => e.stopPropagation()}>
+            <div className="o-modal-body" style={{ textAlign: "center", padding: "32px 24px" }}>
+              <div style={{ fontSize: 48, marginBottom: 12 }}>⚠️</div>
+              <h4 className="o-card-title" style={{ color: "#dc2626", marginBottom: 8 }}>Insufficient Balance</h4>
+              <p className="o-desc" style={{ marginBottom: 16 }}>
+                You don't have enough points to redeem <strong>{insufficientModal.title}</strong>.
+              </p>
+              <div className="o-modal-meta" style={{ marginBottom: 16 }}>
+                <div className="o-meta-row">
+                  <span className="o-meta-label">Offer Cost</span>
+                  <span className="o-meta-value">{insufficientModal.costPoints} pts</span>
+                </div>
+                <div className="o-meta-row">
+                  <span className="o-meta-label">Your Balance</span>
+                  <span className="o-meta-value" style={{ color: "#dc2626" }}>{pointsBalance} pts</span>
+                </div>
+                <div className="o-meta-row">
+                  <span className="o-meta-label">Need More</span>
+                  <span className="o-meta-value" style={{ color: "#f59e0b" }}>{insufficientModal.costPoints - pointsBalance} pts</span>
+                </div>
+              </div>
+              <button className="o-btn o-btn-ghost" onClick={close} style={{ minWidth: 120 }}>OK</button>
             </div>
           </div>
         </div>

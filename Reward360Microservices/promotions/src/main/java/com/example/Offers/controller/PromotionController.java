@@ -1,10 +1,9 @@
-package com.example.Offers.controller;  
+package com.example.Offers.controller;
 
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,9 +31,10 @@ public class PromotionController {
 
     @Autowired
     private com.example.Offers.repository.PromotionRepository promotionRepository;
+
     /**
-     * Saves a new promotion and automatically triggers
-     * the creation of an associated analytics record.
+     * Saves a new promotion and automatically triggers the creation of an
+     * associated analytics record.
      */
     @PostMapping("/promotions")
     public ResponseEntity<Promotion> createPromotion(@RequestBody Promotion promotion) {
@@ -49,7 +49,9 @@ public class PromotionController {
     public List<Promotion> getAllPromotions() {
         return service.getAllPromotions();
     }
-     @GetMapping("/api/promotions/{id}")
+
+    // Corrected mapping for fetching a single promotion by id
+    @GetMapping("/promotions/{id}")
     public ResponseEntity<Promotion> getOfferById(@PathVariable("id") Long id) {
         Promotion promotion = service.getPromotionById(id);
         if (promotion != null) {
@@ -74,12 +76,15 @@ public class PromotionController {
     }
 
     // New endpoint to toggle the active status of a promotion for publish and unpublish
-    @PutMapping("/promotions/{id}")
-        public ResponseEntity<Promotion> togglePromotionActive(@PathVariable("id") Long id){
-        Promotion ex = promotionRepository.findById(id).get();
-                Promotion p = ex;
-        p.setActive(!p.getActive());
-        Promotion saved = promotionRepository.save(p);
-        return ResponseEntity.ok(saved);
+    // Support both PUT /promotions/{id} and PUT /promotions/{id}/toggle (admin UI uses /toggle in some deployments)
+    @PutMapping({"/promotions/{id}", "/promotions/{id}/toggle"})
+    public ResponseEntity<Promotion> togglePromotionActive(@PathVariable("id") Long id) {
+        return promotionRepository.findById(id)
+                .map(p -> {
+                    p.setActive(!p.getActive());
+                    Promotion saved = promotionRepository.save(p);
+                    return ResponseEntity.ok(saved);
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
