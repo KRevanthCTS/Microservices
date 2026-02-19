@@ -42,104 +42,134 @@ export default function Register(){
 
   return (
     <>
-    <div className="card" style={{margin:'20px auto', maxWidth:720}}>
-      <h2 style={{textAlign:'center',fontSize:'30px'}}>Create account</h2>
-  <form onSubmit={submit} className="grid cols-2" style={{ gap: 8 }}> 
-        <div>
-          <label style={{fontSize: '16px'}}>Register as</label>
-          <ul className="role-list" style={{margin:6}}>
-            <input type="radio" name="role" value="USER" checked={f.role === 'USER'} onChange={onChange} /> User
-            <input type="radio" name="role" value="ADMIN" checked={f.role === 'ADMIN'} onChange={onChange} /> Admin
-          </ul>
-        </div>
-        <div>
-          <label style={{fontSize: '16px'}}>Name</label>
-          <input className="input" name="name" value={f.name} onChange={onChange} placeholder="Enter your Name"/>
-          {err.name && <div className="error">{err.name}</div>}
-        </div>
-        <div>
-          <label style={{fontSize: '16px'}}>Email</label>
-          <input className="input" name="email" value={f.email} onChange={onChange} placeholder="Enter your Email"/>
-          {err.email && <div className="error">{err.email}</div>}
-        </div>
-        <div>
-          <label style={{fontSize: '16px'}}>Phone Number</label>
-          <input className="input" name="phone" value={f.phone} onChange={onChange} placeholder="Enter your Phone Number"/>
-          {err.phone && <div className="error">{err.phone}</div>}
-        </div>
-        <div>
-          <label style={{fontSize: '16px'}}>Password</label>
-          <div style={{position: 'relative'}}>
-            <input
-              className="input"
-              type={showPassword ? 'text' : 'password'}
-              name="password"
-              value={f.password}
-              onChange={onChange}
-              placeholder="Enter your Password"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(s => !s)}
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-              aria-pressed={showPassword}
-              style={{
-                position: 'absolute',
-                right: 8,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                background: 'none',
-                border: 'none',
-                padding: 4,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center'
-              }}
-            >
-              {showPassword ? (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M1.5 12s4-7.5 10.5-7.5S22.5 12 22.5 12s-4 7.5-10.5 7.5S1.5 12 1.5 12z" stroke="#0b5ed7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <circle cx="12" cy="12" r="3" stroke="#0b5ed7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              ) : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19.5C5.5 19.5 1.5 12 1.5 12c1.46-2.57 3.76-4.7 6.54-6.02" stroke="#0b5ed7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M3 3l18 18" stroke="#0b5ed7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M9.88 9.88A3 3 0 0 0 14.12 14.12" stroke="#0b5ed7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              )}
-            </button>
+    <div className="auth-page auth-centered">
+      <div className="auth-form-panel">
+        <div className="auth-card auth-card-wide fade-in-up">
+          <h2 className="auth-heading">Create Account</h2>
+          <p className="auth-subheading">Fill in your details to get started with Reward360.</p>
+
+          <form onSubmit={submit} className="auth-form">
+            {/* Role toggle */}
+            <div className="auth-role-toggle">
+              <button
+                type="button"
+                className={`role-btn ${f.role === 'USER' ? 'active' : ''}`}
+                onClick={() => setF(p => ({...p, role: 'USER'}))}
+              >
+                👤 User
+              </button>
+              <button
+                type="button"
+                className={`role-btn ${f.role === 'ADMIN' ? 'active' : ''}`}
+                onClick={() => setF(p => ({...p, role: 'ADMIN'}))}
+              >
+                🛡️ Admin
+              </button>
+            </div>
+
+            {/* Two-column field grid */}
+            <div className="auth-grid-2">
+              {/* Name */}
+              <div className="auth-field">
+                <label className="auth-label">Name</label>
+                <div className="auth-input-wrap">
+                  <span className="auth-input-icon">👤</span>
+                  <input className="auth-input" name="name" value={f.name} onChange={onChange} placeholder="Enter your name" />
+                </div>
+                {err.name && <div className="auth-error">{err.name}</div>}
+              </div>
+
+              {/* Email */}
+              <div className="auth-field">
+                <label className="auth-label">Email</label>
+                <div className="auth-input-wrap">
+                  <span className="auth-input-icon">✉️</span>
+                  <input className="auth-input" name="email" value={f.email} onChange={onChange} placeholder="you@example.com" />
+                </div>
+                {err.email && <div className="auth-error">{err.email}</div>}
+              </div>
+
+              {/* Phone */}
+              <div className="auth-field">
+                <label className="auth-label">Phone Number</label>
+                <div className="auth-input-wrap">
+                  <span className="auth-input-icon">📱</span>
+                  <input className="auth-input" name="phone" value={f.phone} onChange={onChange} placeholder="10-digit number" />
+                </div>
+                {err.phone && <div className="auth-error">{err.phone}</div>}
+              </div>
+
+              {/* Password */}
+              <div className="auth-field">
+                <label className="auth-label">Password</label>
+                <div className="auth-input-wrap">
+                  <span className="auth-input-icon">🔒</span>
+                  <input
+                    className="auth-input"
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    value={f.password}
+                    onChange={onChange}
+                    placeholder="Min 8 characters"
+                  />
+                  <button
+                    type="button"
+                    className="auth-eye-btn"
+                    onClick={() => setShowPassword(s => !s)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M1.5 12s4-7.5 10.5-7.5S22.5 12 22.5 12s-4 7.5-10.5 7.5S1.5 12 1.5 12z" stroke="#0b5ed7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><circle cx="12" cy="12" r="3" stroke="#0b5ed7" strokeWidth="1.5"/></svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19.5C5.5 19.5 1.5 12 1.5 12c1.46-2.57 3.76-4.7 6.54-6.02" stroke="#0b5ed7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M3 3l18 18" stroke="#0b5ed7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M9.88 9.88A3 3 0 0 0 14.12 14.12" stroke="#0b5ed7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    )}
+                  </button>
+                </div>
+                {err.password && <div className="auth-error">{err.password}</div>}
+              </div>
+            </div>
+
+            {/* Preferences */}
+            <div className="auth-field">
+              <label className="auth-label">Preferences (for Users)</label>
+              <div className="auth-checkbox-group">
+                {['Fashion','Electronics','Groceries','Beauty','Home'].map(opt => (
+                  <label key={opt} className="auth-checkbox-label">
+                    <input type="checkbox" name="preferences" value={opt} onChange={onChange} />
+                    <span>{opt}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Communication */}
+            <div className="auth-field">
+              <label className="auth-label">Communication Preference</label>
+              <div className="auth-radio-group">
+                {['Email','SMS','WhatsApp'].map(c => (
+                  <label key={c} className="auth-radio-label">
+                    <input type="radio" name="communication" value={c} checked={f.communication===c} onChange={onChange} />
+                    <span>{c}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {err.api && <div className="auth-error">{err.api}</div>}
+
+            <button className="auth-submit" type="submit">Create Account</button>
+          </form>
+
+          <div className="auth-footer-links" style={{justifyContent:'center'}}>
+            <span>Already have an account? <Link className="link" to="/login">Login</Link></span>
           </div>
-          {err.password && <div className="error">{err.password}</div>}
         </div>
-        <div>
-          <label style={{fontSize: '16px'}}>Choose your Preferences (For User)</label>
-          <div className="flex" style={{flexWrap:'wrap', gap:6}}>
-            {['Fashion','Electronics','Groceries','Beauty','Home'].map(opt=> (
-              <label key={opt}><input type="checkbox" name="preferences" value={opt} onChange={onChange} /> {opt}</label>
-            ))}
-          </div>
-        </div>
-        <div>
-          <label style={{fontSize: '16px'}}>Communication</label>
-          <div className="flex"> 
-            {['Email','SMS','WhatsApp'].map(c => (
-              <label key={c}><input type="radio" name="communication" value={c} checked={f.communication===c} onChange={onChange}/> {c}</label>
-            ))}
-          </div>
-        </div>
-        <div style={{gridColumn:'1/-1',textAlign:'center'}}>
-          {err.api && <div className="error">{err.api}</div>}
-          <button className="button" type="submit">Register</button>
-          <br />
-          <span style={{marginLeft:12}}>Already have an account? <a className="link" href="/login">Login</a></span>
-        </div>
-      </form>
+      </div>
     </div>
 
     {showSuccess && (
-      <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',display:'grid',placeItems:'center',zIndex:50}}>
-        <div className="card" style={{maxWidth:400,textAlign:'center',padding:'32px 24px'}} onClick={(e)=>e.stopPropagation()}>
+      <div className="modal-overlay">
+        <div className="card modal-card" onClick={(e)=>e.stopPropagation()}>
           <div style={{fontSize:56,marginBottom:12}}>🎉</div>
           <h3 style={{margin:'0 0 8px',color:'#059669',fontSize:22}}>Registration Successful!</h3>
           <p style={{color:'#475569',marginBottom:20}}>Your account has been created successfully. You can now log in with your credentials.</p>
