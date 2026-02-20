@@ -77,47 +77,49 @@ Reward360 is a **full-stack microservices-based** loyalty and rewards management
 
 ## 🔧 Microservices Overview
 
-| Service | Port | Description |
-|---------|------|-------------|
-| **Eureka Discovery** | `8761` | Service registry — all microservices register here |
-| **API Gateway** | `8086` | Central entry point — JWT validation, routing, CORS |
-| **user-service** | `8087` | Authentication (login/register), JWT generation, user management |
-| **CustomerMs** | `8081` | Customer profiles, points balance, tiers, transactions |
-| **promotions** | `8083` | Offers CRUD, redemption processing, promotions management |
-| **Fraud_MS** | `8082` | Fraud detection, transaction monitoring, alerts |
-| **AnalyticsService** | `8089` | Dashboard analytics, reports, data aggregation |
+| Service              | Port   | Description                                                      |
+| -------------------- | ------ | ---------------------------------------------------------------- |
+| **Eureka Discovery** | `8761` | Service registry — all microservices register here               |
+| **API Gateway**      | `8086` | Central entry point — JWT validation, routing, CORS              |
+| **user-service**     | `8087` | Authentication (login/register), JWT generation, user management |
+| **CustomerMs**       | `8081` | Customer profiles, points balance, tiers, transactions           |
+| **promotions**       | `8083` | Offers CRUD, redemption processing, promotions management        |
+| **Fraud_MS**         | `8082` | Fraud detection, transaction monitoring, alerts                  |
+| **AnalyticsService** | `8089` | Dashboard analytics, reports, data aggregation                   |
 
 ---
 
 ## 💻 Tech Stack
 
 ### Backend
-| Technology | Purpose |
-|-----------|---------|
-| Java 17 | Language |
-| Spring Boot 3.2 | Framework |
-| Spring Cloud Gateway | API Gateway |
-| Spring Cloud Netflix Eureka | Service Discovery |
-| Spring Security | Authentication & password hashing |
-| Spring Data JPA / Hibernate | ORM & database access |
-| OpenFeign | Inter-service communication |
-| JJWT (io.jsonwebtoken) | JWT token generation & validation |
-| MySQL 8 | Database |
-| Lombok | Boilerplate reduction |
-| SpringDoc OpenAPI | Swagger documentation |
-| Maven | Build tool |
+
+| Technology                  | Purpose                           |
+| --------------------------- | --------------------------------- |
+| Java 17                     | Language                          |
+| Spring Boot 3.2             | Framework                         |
+| Spring Cloud Gateway        | API Gateway                       |
+| Spring Cloud Netflix Eureka | Service Discovery                 |
+| Spring Security             | Authentication & password hashing |
+| Spring Data JPA / Hibernate | ORM & database access             |
+| OpenFeign                   | Inter-service communication       |
+| JJWT (io.jsonwebtoken)      | JWT token generation & validation |
+| MySQL 8                     | Database                          |
+| Lombok                      | Boilerplate reduction             |
+| SpringDoc OpenAPI           | Swagger documentation             |
+| Maven                       | Build tool                        |
 
 ### Frontend
-| Technology | Purpose |
-|-----------|---------|
-| React 18 | UI framework |
-| Vite 5 | Build tool & dev server |
-| React Router 6 | Client-side routing |
-| Axios | HTTP client with interceptors |
-| Chart.js + react-chartjs-2 | Dashboard charts |
-| jsPDF + jspdf-autotable | PDF report generation |
-| xlsx | Excel export |
-| Plain CSS | Styling (animations, responsive) |
+
+| Technology                 | Purpose                          |
+| -------------------------- | -------------------------------- |
+| React 18                   | UI framework                     |
+| Vite 5                     | Build tool & dev server          |
+| React Router 6             | Client-side routing              |
+| Axios                      | HTTP client with interceptors    |
+| Chart.js + react-chartjs-2 | Dashboard charts                 |
+| jsPDF + jspdf-autotable    | PDF report generation            |
+| xlsx                       | Excel export                     |
+| Plain CSS                  | Styling (animations, responsive) |
 
 ---
 
@@ -187,13 +189,13 @@ Microservices/
 
 ## 📋 Prerequisites
 
-| Requirement | Version |
-|-------------|---------|
-| **Java JDK** | 17+ |
-| **Maven** | 3.8+ |
-| **Node.js** | 18+ |
-| **npm** | 9+ |
-| **MySQL** | 8.0+ |
+| Requirement  | Version |
+| ------------ | ------- |
+| **Java JDK** | 17+     |
+| **Maven**    | 3.8+    |
+| **Node.js**  | 18+     |
+| **npm**      | 9+      |
+| **MySQL**    | 8.0+    |
 
 ---
 
@@ -295,11 +297,11 @@ npm run dev
 
 ### Access Points
 
-| Component | URL |
-|-----------|-----|
-| 🌐 **Frontend** | http://localhost:5173 |
-| 🔀 **API Gateway** | http://localhost:8086 |
-| 📡 **Eureka Dashboard** | http://localhost:8761 |
+| Component                | URL                                   |
+| ------------------------ | ------------------------------------- |
+| 🌐 **Frontend**          | http://localhost:5173                 |
+| 🔀 **API Gateway**       | http://localhost:8086                 |
+| 📡 **Eureka Dashboard**  | http://localhost:8761                 |
 | 📘 **Swagger (Gateway)** | http://localhost:8086/swagger-ui.html |
 
 ---
@@ -308,16 +310,16 @@ npm run dev
 
 All frontend requests go to the **API Gateway** (`:8086`), which routes them to the correct microservice:
 
-| Path Pattern | Target Service | JWT Required |
-|-------------|---------------|:------------:|
-| `/auth/**` | user-service `:8087` | ❌ |
-| `/user/**` | user-service `:8087` | ✅ |
-| `/api/users/**` | CustomerMs `:8081` | ✅ |
-| `/api/promotions/**` | promotions `:8083` | ✅ |
-| `/api/v1/transactions/**` | Fraud_MS `:8082` | ✅ |
-| `/api/analytics/**` | AnalyticsService `:8089` | ✅ |
-| `/admin/**` | *(role check)* | ✅ ADMIN only |
-| `/swagger/**`, `/v3/**` | *(docs)* | ❌ |
+| Path Pattern              | Target Service           | JWT Required  |
+| ------------------------- | ------------------------ | :-----------: |
+| `/auth/**`                | user-service `:8087`     |      ❌       |
+| `/user/**`                | user-service `:8087`     |      ✅       |
+| `/api/users/**`           | CustomerMs `:8081`       |      ✅       |
+| `/api/promotions/**`      | promotions `:8083`       |      ✅       |
+| `/api/v1/transactions/**` | Fraud_MS `:8082`         |      ✅       |
+| `/api/analytics/**`       | AnalyticsService `:8089` |      ✅       |
+| `/admin/**`               | _(role check)_           | ✅ ADMIN only |
+| `/swagger/**`, `/v3/**`   | _(docs)_                 |      ❌       |
 
 ---
 
@@ -353,6 +355,7 @@ All frontend requests go to the **API Gateway** (`:8086`), which routes them to 
 ```
 
 **Key points:**
+
 - **Token generation** happens in `user-service` → `JwtUtil.java`
 - **Token validation** happens in `apigateway` → `JwtAuthFilter.java`
 - Both services share the **same JWT secret** (`jwt.secret` property)
@@ -367,80 +370,88 @@ All frontend requests go to the **API Gateway** (`:8086`), which routes them to 
 ## 🖥 Frontend Pages & Features
 
 ### Public Pages
-| Page | Route | Description |
-|------|-------|-------------|
-| Landing | `/` | Animated hero section, About Us, trust badges, CTA |
-| Login | `/login` | Role toggle (User/Admin), email & password, role mismatch modal |
-| Register | `/register` | Two-column form, preferences chips, communication preference |
-| Forgot Password | `/forgot` | Password reset request |
+
+| Page            | Route       | Description                                                     |
+| --------------- | ----------- | --------------------------------------------------------------- |
+| Landing         | `/`         | Animated hero section, About Us, trust badges, CTA              |
+| Login           | `/login`    | Role toggle (User/Admin), email & password, role mismatch modal |
+| Register        | `/register` | Two-column form, preferences chips, communication preference    |
+| Forgot Password | `/forgot`   | Password reset request                                          |
 
 ### User Pages (Protected)
-| Page | Route | Description |
-|------|-------|-------------|
-| Dashboard | `/user` | Points balance, tier status, charts, recent activity |
-| Profile | `/user/profile` | View & edit profile details |
-| Offers | `/user/offers` | Browse active offers, redeem with points |
-| Redemptions | `/user/redemptions` | Redemption history |
-| Transactions | `/user/transactions` | Transaction history |
+
+| Page         | Route                | Description                                          |
+| ------------ | -------------------- | ---------------------------------------------------- |
+| Dashboard    | `/user`              | Points balance, tier status, charts, recent activity |
+| Profile      | `/user/profile`      | View & edit profile details                          |
+| Offers       | `/user/offers`       | Browse active offers, redeem with points             |
+| Redemptions  | `/user/redemptions`  | Redemption history                                   |
+| Transactions | `/user/transactions` | Transaction history                                  |
 
 ### Admin Pages (Admin Role Required)
-| Page | Route | Description |
-|------|-------|-------------|
-| Promotions | `/admin` | Manage promotions & campaigns |
-| Offers Admin | `/admin/offers` | Create, edit, toggle, delete offers |
-| Campaign Builder | `/admin/campaigns/new` | Build new campaigns |
-| Fraud Monitor | `/admin/fraud` | Fraud alerts, anomalies, transaction audit |
-| Reports | `/admin/reports` | Analytics dashboard, PDF & Excel export |
+
+| Page             | Route                  | Description                                |
+| ---------------- | ---------------------- | ------------------------------------------ |
+| Promotions       | `/admin`               | Manage promotions & campaigns              |
+| Offers Admin     | `/admin/offers`        | Create, edit, toggle, delete offers        |
+| Campaign Builder | `/admin/campaigns/new` | Build new campaigns                        |
+| Fraud Monitor    | `/admin/fraud`         | Fraud alerts, anomalies, transaction audit |
+| Reports          | `/admin/reports`       | Analytics dashboard, PDF & Excel export    |
 
 ---
 
 ## 📡 API Endpoints
 
 ### Auth (Public — no JWT)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/auth/register` | Register new user |
-| `POST` | `/auth/login` | Login & receive JWT token |
-| `GET` | `/auth/me` | Get current user info (needs token) |
-| `GET` | `/auth/Users` | List all users |
+
+| Method | Endpoint         | Description                         |
+| ------ | ---------------- | ----------------------------------- |
+| `POST` | `/auth/register` | Register new user                   |
+| `POST` | `/auth/login`    | Login & receive JWT token           |
+| `GET`  | `/auth/me`       | Get current user info (needs token) |
+| `GET`  | `/auth/Users`    | List all users                      |
 
 ### Customer / User
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/users/{id}` | Get customer profile |
-| `GET` | `/api/users/{id}/transactions` | Get user transactions |
-| `GET` | `/api/users/{id}/points` | Get points balance |
-| `PUT` | `/api/users/{id}` | Update customer profile |
+
+| Method | Endpoint                       | Description             |
+| ------ | ------------------------------ | ----------------------- |
+| `GET`  | `/api/users/{id}`              | Get customer profile    |
+| `GET`  | `/api/users/{id}/transactions` | Get user transactions   |
+| `GET`  | `/api/users/{id}/points`       | Get points balance      |
+| `PUT`  | `/api/users/{id}`              | Update customer profile |
 
 ### Promotions / Offers
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/promotions/offers` | List all offers |
-| `POST` | `/api/promotions/offers` | Create new offer |
-| `PUT` | `/api/promotions/offers/{id}` | Update offer |
-| `DELETE` | `/api/promotions/offers/{id}` | Delete offer |
-| `POST` | `/api/promotions/offers/{id}/redeem` | Redeem an offer |
+
+| Method   | Endpoint                             | Description      |
+| -------- | ------------------------------------ | ---------------- |
+| `GET`    | `/api/promotions/offers`             | List all offers  |
+| `POST`   | `/api/promotions/offers`             | Create new offer |
+| `PUT`    | `/api/promotions/offers/{id}`        | Update offer     |
+| `DELETE` | `/api/promotions/offers/{id}`        | Delete offer     |
+| `POST`   | `/api/promotions/offers/{id}/redeem` | Redeem an offer  |
 
 ### Fraud Detection
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/v1/transactions` | Get all transactions |
-| `GET` | `/api/v1/transactions/flagged` | Get flagged transactions |
+
+| Method | Endpoint                       | Description              |
+| ------ | ------------------------------ | ------------------------ |
+| `GET`  | `/api/v1/transactions`         | Get all transactions     |
+| `GET`  | `/api/v1/transactions/flagged` | Get flagged transactions |
 
 ### Analytics
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/analytics/dashboard` | Dashboard analytics data |
-| `GET` | `/api/analytics/reports` | Generate reports |
+
+| Method | Endpoint                   | Description              |
+| ------ | -------------------------- | ------------------------ |
+| `GET`  | `/api/analytics/dashboard` | Dashboard analytics data |
+| `GET`  | `/api/analytics/reports`   | Generate reports         |
 
 ---
 
 ## 🔑 Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `JWT_SECRET` | Base64 dev key | Shared HMAC secret for JWT signing/verification |
-| `MYSQL_ROOT_PASSWORD` | (save it in local system) | MySQL root password for database access |
+| Variable              | Default                   | Description                                     |
+| --------------------- | ------------------------- | ----------------------------------------------- |
+| `JWT_SECRET`          | Base64 dev key            | Shared HMAC secret for JWT signing/verification |
+| `MYSQL_ROOT_PASSWORD` | (save it in local system) | MySQL root password for database access         |
 
 > ⚠ **Production:** Always set `JWT_SECRET` to a strong random key (≥ 32 bytes). Never use the default dev key.
 
@@ -448,15 +459,15 @@ All frontend requests go to the **API Gateway** (`:8086`), which routes them to 
 
 ## 🐛 Troubleshooting
 
-| Problem | Solution |
-|---------|----------|
-| **Services can't register with Eureka** | Make sure Eureka (`8761`) is started first |
-| **401 Unauthorized on API calls** | Check that `JWT_SECRET` is the same in both `user-service` and `apigateway` `application.properties` |
-| **403 Forbidden on admin routes** | Ensure you're logged in with an ADMIN role account |
-| **CORS errors in browser** | API Gateway CORS is configured for `localhost:5173` and `5174`. Check the gateway's `application.properties` |
-| **Frontend can't connect** | Ensure API Gateway is running on `:8086`. Frontend `client.js` uses `http://localhost:8086` as base URL |
-| **Database connection errors** | Verify MySQL is running and credentials match in each service's `application.properties` |
-| **Eureka dashboard shows no services** | Wait 30 seconds after starting services for heartbeat registration |
+| Problem                                 | Solution                                                                                                     |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Services can't register with Eureka** | Make sure Eureka (`8761`) is started first                                                                   |
+| **401 Unauthorized on API calls**       | Check that `JWT_SECRET` is the same in both `user-service` and `apigateway` `application.properties`         |
+| **403 Forbidden on admin routes**       | Ensure you're logged in with an ADMIN role account                                                           |
+| **CORS errors in browser**              | API Gateway CORS is configured for `localhost:5173` and `5174`. Check the gateway's `application.properties` |
+| **Frontend can't connect**              | Ensure API Gateway is running on `:8086`. Frontend `client.js` uses `http://localhost:8086` as base URL      |
+| **Database connection errors**          | Verify MySQL is running and credentials match in each service's `application.properties`                     |
+| **Eureka dashboard shows no services**  | Wait 30 seconds after starting services for heartbeat registration                                           |
 
 ---
 
