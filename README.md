@@ -440,7 +440,7 @@ All frontend requests go to the **API Gateway** (`:8086`), which routes them to 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `JWT_SECRET` | Base64 dev key | Shared HMAC secret for JWT signing/verification |
-| `MYSQL_ROOT_PASSWORD` | *(none)* | MySQL root password for database access |
+| `MYSQL_ROOT_PASSWORD` | (save it in local system) | MySQL root password for database access |
 
 > ⚠ **Production:** Always set `JWT_SECRET` to a strong random key (≥ 32 bytes). Never use the default dev key.
 
@@ -460,20 +460,9 @@ All frontend requests go to the **API Gateway** (`:8086`), which routes them to 
 
 ---
 
-## 🤝 Contributing
-
-1. **Fork** the repository
-2. **Create a branch**: `git checkout -b feature/your-feature`
-3. **Make changes** and test locally
-4. **Commit**: `git commit -m "Add your feature"`
-5. **Push**: `git push origin feature/your-feature`
-6. **Open a Pull Request**
-
----
-
 ## 📄 License
 
-This project is for educational/demonstration purposes.
+This project is for Training purposes.
 
 ---
 
