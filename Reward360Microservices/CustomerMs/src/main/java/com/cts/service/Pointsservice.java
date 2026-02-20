@@ -71,8 +71,8 @@ public class Pointsservice {
     }
 
     /**
-     * Update an existing customer profile (name, preferences, communication only).
-     * Preserves points, tier, and other financial data.
+     * Update an existing customer profile (name, preferences, communication
+     * only). Preserves points, tier, and other financial data.
      */
     @Transactional
     public CustomerProfile updateProfile(Long userId, CustomerProfile updateRequest) {

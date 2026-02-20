@@ -1,12 +1,13 @@
 package com.user.service.client;
 
-import com.user.service.dto.CustomerProfileDto;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.GetMapping;
+
+import com.user.service.dto.CustomerProfileDto;
 
 @FeignClient(name = "CustomerMs")
 public interface CustomerServiceClient {
