@@ -2,7 +2,6 @@ C:\software\Microservices\Reward360Microservices\user-service\src\main\java\com\
 C:\software\Microservices\Reward360Microservices\user-service\src\main\java\com\user\service\service\UserService.java
 C:\software\Microservices\Reward360Microservices\user-service\src\main\java\com\user\service\config\SecurityConfig.java
 C:\software\Microservices\Reward360Microservices\user-service\src\main\java\com\user\service\dto\CustomerProfileDto.java
-C:\software\Microservices\Reward360Microservices\user-service\src\main\java\com\user\service\controller\UserController.java
 C:\software\Microservices\Reward360Microservices\user-service\src\main\java\com\user\service\client\PromotionServiceClient.java
 C:\software\Microservices\Reward360Microservices\user-service\src\main\java\com\user\service\UserServiceApplication.java
 C:\software\Microservices\Reward360Microservices\user-service\src\main\java\com\user\service\client\RewardsClient.java
@@ -18,5 +17,4 @@ C:\software\Microservices\Reward360Microservices\user-service\src\main\java\com\
 C:\software\Microservices\Reward360Microservices\user-service\src\main\java\com\user\service\client\CustomerServiceClient.java
 C:\software\Microservices\Reward360Microservices\user-service\src\main\java\com\user\service\model\User.java
 C:\software\Microservices\Reward360Microservices\user-service\src\main\java\com\user\service\dto\UserDto.java
-C:\software\Microservices\Reward360Microservices\user-service\src\main\java\com\user\service\controller\CustomerController.java
 C:\software\Microservices\Reward360Microservices\user-service\src\main\java\com\user\service\config\OpenApiConfig.java

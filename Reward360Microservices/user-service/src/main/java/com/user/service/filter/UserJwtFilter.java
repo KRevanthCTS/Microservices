@@ -26,8 +26,7 @@ public class UserJwtFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
         // do not filter auth endpoints or non-user endpoints
-        if (path.startsWith("/auth") || !path.startsWith("/user")) return true;
-        return false;
+        return path.startsWith("/auth") || !path.startsWith("/user");
     }
 
     @Override

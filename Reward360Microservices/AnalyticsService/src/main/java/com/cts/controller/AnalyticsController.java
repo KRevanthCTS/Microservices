@@ -9,11 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.cts.dto.*;
 import com.cts.service.AnalyticsService;
-import com.cts.Feign.CustomerServiceClient;
-import com.cts.Feign.PromotionServiceClient;
-import com.cts.Feign.UserServiceClient;
 import com.cts.model.Report;
-
 
 @RestController
 @RequestMapping("/api/analytics")

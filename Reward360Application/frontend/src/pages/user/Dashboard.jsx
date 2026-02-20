@@ -10,7 +10,7 @@ function ClaimCard({ a, onClaimed, isClaimed }) {
     setBusy(true)
     try {
       await claimPoints(a.code, a.points, a.title)
-      onClaimed(a.code)
+      onClaimed(a.code, a.title, a.points)
     } catch (error) {
       console.error('Failed to claim:', error)
     } finally {
@@ -36,6 +36,7 @@ function ClaimCard({ a, onClaimed, isClaimed }) {
 export default function Dashboard() {
   const { user, transactions, loading } = useUser()
   const [claimedActivities, setClaimedActivities] = useState([])
+  const [claimSuccessModal, setClaimSuccessModal] = useState(null)
 
   // Ensure storage is unique per user to prevent data bleed
   const userStorageKey = user ? `claimedActivities_${user.id || user.userId}` : null
@@ -131,7 +132,10 @@ export default function Dashboard() {
             <ClaimCard 
               key={a.code} 
               a={a} 
-              onClaimed={(code) => setClaimedActivities(prev => [...prev, code])}
+              onClaimed={(code, title, points) => {
+                setClaimedActivities(prev => [...prev, code])
+                setClaimSuccessModal({ title, points })
+              }}
               isClaimed={claimedActivities.includes(a.code)}
             />
           ))}
@@ -160,6 +164,21 @@ export default function Dashboard() {
           </table>
         </div>
       </div>
+
+      {claimSuccessModal && (
+        <div className="d-modal-backdrop" onClick={() => setClaimSuccessModal(null)}>
+          <div className="d-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="d-modal-body">
+              <div className="d-modal-icon">🎉</div>
+              <h4 className="d-modal-title">Successfully Claimed!</h4>
+              <p className="d-modal-desc">
+                You earned <strong>{claimSuccessModal.points} points</strong> for <strong>{claimSuccessModal.title}</strong>!
+              </p>
+              <button className="d-btn" onClick={() => setClaimSuccessModal(null)}>Awesome!</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

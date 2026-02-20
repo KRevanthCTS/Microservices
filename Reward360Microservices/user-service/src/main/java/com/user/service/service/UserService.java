@@ -4,15 +4,12 @@ import com.user.service.client.CustomerServiceClient;
 import com.user.service.dto.CustomerProfileDto;
 import com.user.service.dto.LoginDto;
 import com.user.service.dto.UserDto;
-import com.user.service.model.CustomerProfile;
 import com.user.service.model.Role;
 import com.user.service.model.User;
-import com.user.service.repository.CustomerProfileRepository;
 import com.user.service.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
-
 
 @Service
 public class UserService {
@@ -20,13 +17,9 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private CustomerProfileRepository profileRepository;
-    @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
     private CustomerServiceClient customerServiceClient;
-
-  
 
     public User registerUser(UserDto userDto) {
         // 1. Save Identity in Auth DB
@@ -59,7 +52,6 @@ public class UserService {
 
         return savedUser;
     }
-
 
     public User loginUser(LoginDto loginDto) {
         User user = userRepository.findByEmail(loginDto.getEmail())

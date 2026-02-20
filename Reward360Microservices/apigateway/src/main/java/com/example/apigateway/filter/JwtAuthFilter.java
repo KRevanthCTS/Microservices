@@ -28,8 +28,11 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
         byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
         try {
             byte[] decoded = Decoders.BASE64.decode(jwtSecret);
-            if (decoded.length > 0) keyBytes = decoded;
-        } catch (Exception ignored) { }
+            if (decoded.length > 0) {
+                keyBytes = decoded;
+            }
+        } catch (Exception ignored) {
+        }
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -38,7 +41,9 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
         String path = exchange.getRequest().getURI().getPath();
 
         // Allow anonymous access to auth endpoints and public resources
-        if (path.startsWith("/auth") || path.startsWith("/public") || path.startsWith("/swagger") || path.startsWith("/v3")) {
+        if (path.startsWith("/auth") || path.startsWith("/public")
+                || path.startsWith("/swagger") || path.startsWith("/v3")
+                || path.contains("/v3/api-docs") || path.contains("/swagger-ui")) {
             return chain.filter(exchange);
         }
 
@@ -66,15 +71,15 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
                 return exchange.getResponse().setComplete();
             }
 
-        // Forward user info to downstream services by mutating the request headers
-        org.springframework.http.server.reactive.ServerHttpRequest req = exchange.getRequest().mutate()
-            .header("X-User-Id", userId != null ? userId : "")
-            .header("X-User-Role", role != null ? role : "")
-            .header("X-User-Email", email != null ? email : "")
-            .build();
+            // Forward user info to downstream services by mutating the request headers
+            org.springframework.http.server.reactive.ServerHttpRequest req = exchange.getRequest().mutate()
+                    .header("X-User-Id", userId != null ? userId : "")
+                    .header("X-User-Role", role != null ? role : "")
+                    .header("X-User-Email", email != null ? email : "")
+                    .build();
 
-        ServerWebExchange mutated = exchange.mutate().request(req).build();
-        return chain.filter(mutated);
+            ServerWebExchange mutated = exchange.mutate().request(req).build();
+            return chain.filter(mutated);
         } catch (Exception e) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();

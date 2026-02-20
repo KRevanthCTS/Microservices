@@ -1,4 +1,4 @@
-package com.user.service.config;
+package com.example.dashboard_backend.Config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,9 +14,9 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("User Service API")
+                        .title("Fraud Detection Service API")
                         .version("1.0.0")
-                        .description("Handles user authentication (login/register), JWT token generation, and user management")
+                        .description("Monitors transactions for fraud, risk scoring, and anomaly detection")
                         .contact(new Contact().name("Reward360 Team").email("dev@reward360.com")));
     }
 }

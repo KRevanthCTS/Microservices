@@ -6,6 +6,9 @@ export default function Offers() {
   const { user, offers, redeemOffer, loading, redemptions } = useUser();
   const [confirm, setConfirm] = useState(null);
   const [insufficientModal, setInsufficientModal] = useState(null);
+  const [alreadyRedeemedModal, setAlreadyRedeemedModal] = useState(false);
+  const [successModal, setSuccessModal] = useState(false);
+  const [errorModal, setErrorModal] = useState(false);
   const [category, setCategory] = useState("All");
 
   if (loading || !user) return <div className="offers-page">Loading...</div>;
@@ -20,16 +23,17 @@ export default function Offers() {
     }
     setConfirm(o);
   };
-  const close = () => { setConfirm(null); setInsufficientModal(null); };
+  const close = () => { setConfirm(null); setInsufficientModal(null); setAlreadyRedeemedModal(false); setSuccessModal(false); setErrorModal(false); };
 
   const redeem = async () => {
     if (!confirm) return;
     try {
       await redeemOffer(confirm.id, "Online");
       setConfirm(null);
-      alert("Redemption confirmed! Check Redemptions page.");
+      setSuccessModal(true);
     } catch (error) {
-      alert("Failed to redeem offer. Please try again.");
+      setConfirm(null);
+      setErrorModal(true);
     }
   };
 
@@ -88,7 +92,21 @@ export default function Offers() {
                     Cost: <strong>{o.costPoints}</strong> pts
                   </span>
                   {redeemedTitles.has(o.title) ? (
-                    <button className="o-btn" disabled style={{ opacity: 0.6, cursor: "not-allowed" }}>Redeemed</button>
+                    <button
+                      className="o-btn"
+                      style={{ opacity: 0.5, cursor: "not-allowed" }}
+                      onClick={() => setAlreadyRedeemedModal(true)}
+                    >
+                      Redeemed
+                    </button>
+                  ) : pointsBalance < o.costPoints ? (
+                    <button
+                      className="o-btn"
+                      style={{ opacity: 0.5, cursor: "not-allowed" }}
+                      onClick={() => open(o)}
+                    >
+                      Redeem
+                    </button>
                   ) : (
                     <button
                       className="o-btn"
@@ -152,6 +170,51 @@ export default function Offers() {
                   <span className="o-meta-value" style={{ color: "#f59e0b" }}>{insufficientModal.costPoints - pointsBalance} pts</span>
                 </div>
               </div>
+              <button className="o-btn o-btn-ghost" onClick={close} style={{ minWidth: 120 }}>OK</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {alreadyRedeemedModal && (
+        <div className="o-modal-backdrop" onClick={close} aria-hidden="true">
+          <div className="o-modal-card o-card" onClick={(e) => e.stopPropagation()}>
+            <div className="o-modal-body" style={{ textAlign: "center", padding: "32px 24px" }}>
+              <div style={{ fontSize: 48, marginBottom: 12 }}>😅</div>
+              <h4 className="o-card-title" style={{ color: "#f59e0b", marginBottom: 8 }}>Oops!</h4>
+              <p className="o-desc" style={{ marginBottom: 20, fontSize: 16 }}>
+                Already redeemed buddy 🎉
+              </p>
+              <button className="o-btn o-btn-ghost" onClick={close} style={{ minWidth: 120 }}>Got it</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {successModal && (
+        <div className="o-modal-backdrop" onClick={close} aria-hidden="true">
+          <div className="o-modal-card o-card" onClick={(e) => e.stopPropagation()}>
+            <div className="o-modal-body" style={{ textAlign: "center", padding: "32px 24px" }}>
+              <div style={{ fontSize: 48, marginBottom: 12 }}>🎉</div>
+              <h4 className="o-card-title" style={{ color: "#059669", marginBottom: 8 }}>Successfully Redeemed!</h4>
+              <p className="o-desc" style={{ marginBottom: 20, fontSize: 16 }}>
+                Your offer has been redeemed. Check the Redemptions page for details!
+              </p>
+              <button className="o-btn o-btn-ghost" onClick={close} style={{ minWidth: 120 }}>Awesome!</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {errorModal && (
+        <div className="o-modal-backdrop" onClick={close} aria-hidden="true">
+          <div className="o-modal-card o-card" onClick={(e) => e.stopPropagation()}>
+            <div className="o-modal-body" style={{ textAlign: "center", padding: "32px 24px" }}>
+              <div style={{ fontSize: 48, marginBottom: 12 }}>❌</div>
+              <h4 className="o-card-title" style={{ color: "#dc2626", marginBottom: 8 }}>Redemption Failed</h4>
+              <p className="o-desc" style={{ marginBottom: 20, fontSize: 16 }}>
+                Something went wrong. Please try again later.
+              </p>
               <button className="o-btn o-btn-ghost" onClick={close} style={{ minWidth: 120 }}>OK</button>
             </div>
           </div>

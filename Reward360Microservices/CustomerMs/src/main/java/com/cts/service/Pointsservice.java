@@ -71,6 +71,28 @@ public class Pointsservice {
     }
 
     /**
+     * Update an existing customer profile (name, preferences, communication only).
+     * Preserves points, tier, and other financial data.
+     */
+    @Transactional
+    public CustomerProfile updateProfile(Long userId, CustomerProfile updateRequest) {
+        CustomerProfile profile = custrepo.findByUserId(userId);
+        if (profile == null) {
+            throw new RuntimeException("Profile not found for userId: " + userId);
+        }
+        if (updateRequest.getCustomerName() != null) {
+            profile.setCustomerName(updateRequest.getCustomerName());
+        }
+        if (updateRequest.getPreferences() != null) {
+            profile.setPreferences(updateRequest.getPreferences());
+        }
+        if (updateRequest.getCommunication() != null) {
+            profile.setCommunication(updateRequest.getCommunication());
+        }
+        return custrepo.save(profile);
+    }
+
+    /**
      * Redeem an offer for a user Deducts points from user's profile and creates
      * a redemption record Fetches offer details from Promotion Service via
      * Feign client
@@ -275,9 +297,7 @@ public class Pointsservice {
             request.setType(transaction.getType());
             request.setPointsEarned(transaction.getPointsEarned());
             request.setPointsRedeemed(transaction.getPointsRedeemed());
-            request.setStore(transaction.getStore());
             request.setDate(transaction.getDate());
-            request.setExpiry(transaction.getExpiry());
             request.setNote(transaction.getNote());
             request.setUserId(transaction.getUserId());
 

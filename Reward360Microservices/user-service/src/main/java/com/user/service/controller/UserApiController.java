@@ -246,7 +246,7 @@ public class UserApiController {
             }
 
             try {
-                customerClient.createProfile(dto);
+                customerClient.updateProfile(dto, user.getId());
             } catch (Exception e) {
                 // best-effort: if remote fails, mirror locally
                 var profOpt = customerProfileRepository.findByUser(user);

@@ -19,7 +19,7 @@ export default function Transactions() {
           {user && (
             <div className="balance-badge">
               <span className="balance-label">Balance</span>
-              <span className="balance-value">{user.pointsBalance ?? 0}</span>
+              <span className="balance-value">{(user.profile && user.profile.pointsBalance) ?? user.pointsBalance ?? 0}</span>
               <span className="balance-unit">pts</span>
             </div>
           )}
