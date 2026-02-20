@@ -24,6 +24,11 @@ footer {
   color: #fff;
 }
 
+header {
+  position: relative;
+  z-index: 1000;
+}
+
 /* Header specific tweaks */
 .navbar .brand {
   display: inline-flex;
