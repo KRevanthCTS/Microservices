@@ -5,7 +5,7 @@ import api from '../../api/client'
 import { useUser } from '../../context/UserContext'
 
 export default function Login(){
-  const [form, setForm] = useState({ email:'', password:'', role:'USER', mode:'Password' })
+  const [form, setForm] = useState({ email:'', password:'', role:'USER' })
   const [err, setErr] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [roleMismatch, setRoleMismatch] = useState(false)
@@ -83,10 +83,11 @@ export default function Login(){
               <div className="auth-input-wrap">
                 <span className="auth-input-icon">🔒</span>
                 <input
-                  className="auth-input"
+                  className={`auth-input${showPassword ? '' : ' auth-input-masked'}`}
                   name="password"
                   placeholder="Enter your password"
-                  type={showPassword ? 'text' : 'password'}
+                  type="text"
+                  autoComplete="off"
                   value={form.password}
                   onChange={onChange}
                   required

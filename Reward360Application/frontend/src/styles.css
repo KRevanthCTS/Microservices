@@ -1229,6 +1229,10 @@ main {
 .auth-input::placeholder {
   color: #909eb3;
 }
+.auth-input-masked {
+  -webkit-text-security: disc;
+  text-security: disc;
+}
 .auth-eye-btn {
   background: none;
   border: none;

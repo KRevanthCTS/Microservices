@@ -19,7 +19,7 @@ export default function Register(){
   }
 
   const onChange = (e)=>{
-    const {name, value, type, checked} = e.target
+    const {name, value, checked} = e.target
     if(name==='preferences'){
       const arr = new Set(f.preferences)
       if(checked) arr.add(value); else arr.delete(value)
@@ -105,8 +105,9 @@ export default function Register(){
                 <div className="auth-input-wrap">
                   <span className="auth-input-icon">🔒</span>
                   <input
-                    className="auth-input"
-                    type={showPassword ? 'text' : 'password'}
+                    className={`auth-input${showPassword ? '' : ' auth-input-masked'}`}
+                    type="text"
+                    autoComplete="off"
                     name="password"
                     value={f.password}
                     onChange={onChange}
