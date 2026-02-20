@@ -1,0 +1,500 @@
+
+╔══════════════════════════════════════════════════════════════════════════════════╗
+║                  REWARD360 — JWT SECURITY & MICROSERVICES FLOW                   ║
+║                     End-to-End Authentication & Authorization                    ║
+╚══════════════════════════════════════════════════════════════════════════════════╝
+
+
+1. MICROSERVICES ARCHITECTURE OVERVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                          REWARD360 ARCHITECTURE                              │
+│                                                                              │
+│   ┌─────────────┐          ┌──────────────┐        ┌──────────────────┐      │
+│   │  React App  │──HTTP──▶│  API Gateway  │──────▶│  Eureka Server   │      │
+│   │  (Vite)     │          │  :8086        │  reg  │  :8761           │      │
+│   │  :5173      │          │               │◀──────│  (Discovery)     │     │
+│   └─────────────┘          └──────┬────────┘        └──────────────────┘     │
+│                                   │                                          │
+│          ┌────────────────────────┼────────────────────────┐                 │
+│          │                        │                        │                 │
+│          ▼                        ▼                        ▼                 │
+│   ┌────────────┐         ┌──────────────┐         ┌──────────────┐           │
+│   │user-service│         │ CustomerMs   │         │ promotions   │           │
+│   │  :8087     │         │  :8081       │         │  :8083       │           │
+│   │            │         │              │         │              │           │
+│   │ • Auth     │         │ • Points     │         │ • Offers     │           │
+│   │ • JWT Gen  │         │ • Tiers      │         │ • Redemption │           │
+│   │ • Users    │         │ • Txns       │         │ • Promotions │           │
+│   └────────────┘         └──────────────┘         └──────────────┘           │
+│         │                                                                    │
+│         │               ┌──────────────┐         ┌──────────────┐            │
+│         │               │  Fraud_MS    │         │ Analytics    │            │
+│         │               │  :8082       │         │ Service      │            │
+│         │               │              │         │  :8089       │            │
+│         │               │ • Fraud Det. │         │ • Reports    │            │
+│         │               │ • Txn Check  │         │ • Dashboard  │            │
+│         │               └──────────────┘         └──────────────┘            │
+│         │                                                                    │
+│         ▼                                                                    │
+│   ┌───────────┐                                                              │
+│   │  MySQL DB  │                                                             │
+│   │  :3306     │                                                             │
+│   └───────────┘                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+PORT MAP:
+  • React Frontend     → localhost:5173
+  • API Gateway        → localhost:8086
+  • Eureka Discovery   → localhost:8761
+  • user-service       → localhost:8087
+  • CustomerMs         → localhost:8081
+  • Fraud_MS           → localhost:8082
+  • promotions         → localhost:8083
+  • AnalyticsService   → localhost:8089
+
+
+2. WHAT IS JWT?
+━━━━━━━━━━━━━━━
+JWT = JSON Web Token
+A compact, URL-safe token containing digitally signed JSON data.
+Used to prove identity & role without re-authenticating on every request.
+
+Structure:   HEADER.PAYLOAD.SIGNATURE
+             ──────.───────.─────────
+
+Example:
+  eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEsInJvbGUiOiJVU0VSIn0.abc123signature
+
+┌────────────────────────────────────────────────────────────────────┐
+│  HEADER (Base64)        │  PAYLOAD (Base64)     │  SIGNATURE       │
+│  {                      │  {                    │                  │
+│    "alg": "HS256"       │    "userId": 1,       │  HMAC-SHA256(    │
+│  }                      │    "role": "USER",    │    header+payload│
+│                         │    "name": "John",    │    , secret      │
+│                         │    "sub": "j@mail.com"│  )               │
+│                         │    "iat": 1708387200, │                  │
+│                         │    "exp": 1708473600  │                  │
+│                         │  }                    │                  │
+└────────────────────────────────────────────────────────────────────┘
+
+In this project:
+  • Algorithm    → HS256 (HMAC-SHA256)
+  • Secret Key   → Base64-encoded string (shared between user-service & API Gateway)
+  • Expiration   → 86400000 ms = 24 hours
+  • Claims       → userId, role, name, sub (email), iat, exp
+
+
+3. SHARED SECRET CONFIGURATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL: Both user-service (token creator) and API Gateway (token verifier) MUST
+use the SAME secret key. If they differ, every request will fail with 401.
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        SHARED JWT SECRET                                │
+│                                                                         │
+│  user-service/application.properties:                                   │
+│    jwt.secret=${JWT_SECRET:Zm9yLWRldmVsb3BtZW50LXNvbH...}               │
+│    jwt.expiration-ms=86400000                                           │
+│                                                                         │
+│  apigateway/application.properties:                                     │
+│    jwt.secret=${JWT_SECRET:Zm9yLWRldmVsb3BtZW50LXNvbH...}               │
+│                                                                         │
+│  Both read from the same env variable JWT_SECRET.                       │
+│  Default fallback (dev only): Base64 encoded dev key                    │
+│                                                                         │
+│  ⚠ In PRODUCTION: Set JWT_SECRET env variable to a strong random key   │
+└─────────────────────────────────────────────────────────────────────────┘
+
+
+4. END-TO-END JWT FLOW — REGISTRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+No JWT involved during registration — it's a public endpoint.
+  ┌──────────┐         ┌─────────────┐          ┌──────────────┐       ┌───────┐
+  │  React   │         │ API Gateway │          │ user-service │       │ MySQL │
+  │ Frontend │         │   :8086     │          │   :8087      │       │  DB   │
+  └────┬─────┘         └──────┬──────┘          └──────┬───────┘       └───┬───┘
+       │                      │                        │                   │
+       │  POST /auth/register │                        │                   │
+       │  {name, email,       │                        │                   │
+       │   phone, password,   │                        │                   │
+       │   role, preferences} │                        │                   │
+       │─────────────────────▶│                        │                   │
+       │                      │                        │                   │
+       │                      │  Path starts with      │                   │
+       │                      │  "/auth" → SKIP JWT    │                   │
+       │                      │  check (public route)  │                   │
+       │                      │                        │                   │
+       │                      │  Forward to :8087      │                   │
+       │                      │───────────────────────▶│                   │
+       │                      │                        │                   │
+       │                      │                        │  BCrypt hash      │
+       │                      │                        │  password         │
+       │                      │                        │  Save user        │
+       │                      │                        │──────────────────▶│
+       │                      │                        │                   │
+       │                      │                        │  ✅ User saved    │
+       │                      │                        │◀──────────────────│
+       │                      │                        │                   │
+       │                      │    200 OK {userDto}    │                   │
+       │                      │◀───────────────────────│                   │
+       │                      │                        │                   │
+       │   200 OK             │                        │                   │
+       │◀─────────────────────│                        │                   │
+       │                      │                        │                   │
+       │  Show success popup  │                        │                   │
+       │  Navigate to /login  │                        │                   │
+       ▼                      ▼                        ▼                   ▼
+
+
+5. END-TO-END JWT FLOW — LOGIN (TOKEN GENERATION)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ┌──────────┐         ┌─────────────┐          ┌──────────────┐       ┌───────┐
+  │  React   │         │ API Gateway │          │ user-service │       │ MySQL │
+  │ Frontend │         │   :8086     │          │   :8087      │       │  DB   │
+  └────┬─────┘         └──────┬──────┘          └──────┬───────┘       └───┬───┘
+       │                      │                        │                   │
+       │  POST /auth/login    │                        │                   │
+       │  {email, password}   │                        │                   │
+       │─────────────────────▶│                        │                   │
+       │                      │                        │                   │
+       │                      │  "/auth" path →        │                   │
+       │                      │  SKIP JWT check        │                   │
+       │                      │                        │                   │
+       │                      │  Forward to :8087      │                   │
+       │                      │───────────────────────▶│                   │
+       │                      │                        │                   │
+       │                      │                        │  Find user by     │
+       │                      │                        │  email in DB      │
+       │                      │                        │──────────────────▶│
+       │                      │                        │                   │
+       │                      │                        │  User found       │
+       │                      │                        │◀──────────────────│
+       │                      │                        │                   │
+       │                      │                        │  BCrypt.matches(  │
+       │                      │                        │    password,      │
+       │                      │                        │    stored_hash)   │
+       │                      │                        │                   │
+       │                      │                        │  ✅ Match!        │
+       │                      │                        │                   │
+       │                      │                        │  ┌──────────────────────────┐
+       │                      │                        │  │  JwtUtil.generateToken() │
+       │                      │                        │  │                          │
+       │                      │                        │  │  Claims:                 │
+       │                      │                        │  │   userId  = 1            │
+       │                      │                        │  │   role    = "USER"       │
+       │                      │                        │  │   name    = "John"       │
+       │                      │                        │  │   sub     = "j@mail.com" │
+       │                      │                        │  │   iat     = now          │
+       │                      │                        │  │   exp     = now + 24h    │
+       │                      │                        │  │                          │
+       │                      │                        │  │  Sign with HS256         │
+       │                      │                        │  │  using jwt.secret        │
+       │                      │                        │  └──────────────────────────┘
+       │                      │                        │                   │
+       │                      │   200 OK               │                   │
+       │                      │   {                    │                   │
+       │                      │     token: "eyJhb...", │                   │
+       │                      │     role: "USER",      │                   │
+       │                      │     user: {id, name,   │                   │
+       │                      │            email}      │                   │
+       │                      │   }                    │                   │
+       │                      │◀───────────────────────│                   │
+       │                      │                        │                   │
+       │  200 OK (same body)  │                        │                   │
+       │◀─────────────────────│                        │                   │
+       │                      │                        │                   │
+       │  ┌──────────────────────────────────────────┐ │                   │
+       │  │  Frontend stores token:                  │ │                   │
+       │  │  localStorage.setItem('token', data.token│)│                   │
+       │  │  localStorage.setItem('role', data.role) │ │                   │
+       │  │  Navigate to /user or /admin dashboard   │ │                   │
+       │  └──────────────────────────────────────────┘ │                   │
+       ▼                      ▼                        ▼                   ▼
+
+
+6. END-TO-END JWT FLOW — AUTHENTICATED API CALL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Example: User fetches their transactions → GET /api/users/{id}/transactions
+
+  ┌──────────┐         ┌─────────────┐          ┌──────────────┐       ┌───────┐
+  │  React   │         │ API Gateway │          │ CustomerMs   │       │ MySQL │
+  │ Frontend │         │   :8086     │          │   :8081      │       │  DB   │
+  └────┬─────┘         └──────┬──────┘          └──────┬───────┘       └───┬───┘
+       │                      │                        │                   │
+       │  ┌────────────────────────────────────┐       │                   │
+       │  │ Axios Interceptor (client.js):     │       │                   │
+       │  │ Reads token from localStorage      │       │                   │
+       │  │ Attaches: Authorization header     │       │                   │
+       │  │   "Bearer eyJhbGciOiJIUzI1NiJ9..." │       │                   │
+       │  └────────────────────────────────────┘       │                   │
+       │                      │                        │                   │
+       │  GET /api/users/1/   │                        │                   │
+       │    transactions      │                        │                   │
+       │  Headers:            │                        │                   │
+       │    Authorization:    │                        │                   │
+       │    Bearer eyJhb...   │                        │                   │
+       │─────────────────────▶│                        │                   │
+       │                      │                        │                   │
+       │                      │  ┌─────────────────────────────────────┐   │
+       │                      │  │  JwtAuthFilter.filter() executes:  │   │
+       │                      │  │                                     │   │
+       │                      │  │  1. Check path: "/api/users/..."    │   │
+       │                      │  │     → NOT /auth or /public          │   │
+       │                      │  │     → JWT validation required       │   │
+       │                      │  │                                     │   │
+       │                      │  │  2. Extract Authorization header    │   │
+       │                      │  │     → "Bearer eyJhb..."             │   │
+       │                      │  │     → Strip "Bearer " prefix        │   │
+       │                      │  │                                     │   │
+       │                      │  │  3. Parse & verify token:           │   │
+       │                      │  │     Jwts.parserBuilder()            │   │
+       │                      │  │       .setSigningKey(secret)        │   │
+       │                      │  │       .build()                      │   │
+       │                      │  │       .parseClaimsJws(token)        │   │
+       │                      │  │                                     │   │
+       │                      │  │     Checks:                         │   │
+       │                      │  │     ✅ Signature valid (same secret)│   │
+       │                      │  │     ✅ Token not expired            │   │
+       │                      │  │     ✅ Claims parseable             │   │
+       │                      │  │                                     │   │
+       │                      │  │  4. Extract claims:                 │   │
+       │                      │  │     role   = "USER"                 │   │
+       │                      │  │     userId = "1"                    │   │
+       │                      │  │     email  = "j@mail.com"           │   │
+       │                      │  │                                     │   │
+       │                      │  │  5. Role check:                     │   │
+       │                      │  │     Path "/api/users" →             │   │
+       │                      │  │     NOT /admin → no admin check     │   │
+       │                      │  │     → PASS ✅                       │   │
+       │                      │  │                                     │   │
+       │                      │  │  6. Mutate request — add headers:   │   │
+       │                      │  │     X-User-Id:    "1"               │   │
+       │                      │  │     X-User-Role:  "USER"            │   │
+       │                      │  │     X-User-Email: "j@mail.com"      │   │
+       │                      │  │                                     │   │
+       │                      │  │  7. Forward to downstream service   │   │
+       │                      │  └─────────────────────────────────────┘   │
+       │                      │                        │                   │
+       │                      │  GET /api/users/1/txns │                   │
+       │                      │  + X-User-Id: 1        │                   │
+       │                      │  + X-User-Role: USER   │                   │
+       │                      │  + X-User-Email: j@... │                   │
+       │                      │───────────────────────▶│                   │
+       │                      │                        │                   │
+       │                      │                        │  Query DB         │
+       │                      │                        │──────────────────▶│
+       │                      │                        │                   │
+       │                      │                        │  Return data      │
+       │                      │                        │◀──────────────────│
+       │                      │                        │                   │
+       │                      │   200 OK [txn data]    │                   │
+       │                      │◀───────────────────────│                   │
+       │                      │                        │                   │
+       │  200 OK [txn data]   │                        │                   │
+       │◀─────────────────────│                        │                   │
+       ▼                      ▼                        ▼                   ▼
+
+
+7. END-TO-END JWT FLOW — ADMIN-ONLY ACCESS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Example: Admin accesses analytics → GET /api/analytics/...
+
+  ┌──────────┐         ┌─────────────┐
+  │  React   │         │ API Gateway │
+  │ Frontend │         │   :8086     │
+  └────┬─────┘         └──────┬──────┘
+       │                      │
+       │  GET /admin/...      │
+       │  Authorization:      │
+       │  Bearer eyJhb...     │
+       │─────────────────────▶│
+       │                      │
+       │                      │  Parse JWT → role = ?
+       │                      │
+       │                      │  ┌──────────────────────────────┐
+       │                      │  │ IF path starts with "/admin" │
+       │                      │  │   AND role ≠ "ADMIN"         │
+       │                      │  │   → 403 FORBIDDEN ❌          │
+       │                      │  │                              │
+       │                      │  │ IF role == "ADMIN"           │
+       │                      │  │   → PASS ✅ Forward request  │
+       │                      │  └──────────────────────────────┘
+       │                      │
+       │  403 or 200          │
+       │◀─────────────────────│
+       ▼                      ▼
+
+
+8. JWT FAILURE SCENARIOS
+━━━━━━━━━━━━━━━━━━━━━━━━
+┌──────────────────────┬───────────┬───────────────────────────────────────────┐
+│ Scenario             │ HTTP Code │ What happens                              │
+├──────────────────────┼───────────┼───────────────────────────────────────────┤
+│ No Authorization     │   401     │ Gateway rejects immediately — no token    │
+│ header               │           │ found in request                          │
+├──────────────────────┼───────────┼───────────────────────────────────────────┤
+│ Malformed token      │   401     │ "Bearer abc123" — JWT parsing fails,      │
+│ (not a valid JWT)    │           │ gateway catches exception → 401           │
+├──────────────────────┼───────────┼───────────────────────────────────────────┤
+│ Wrong secret key     │   401     │ Signature verification fails — token was  │
+│ (tampered/different) │           │ signed with a different key               │
+├──────────────────────┼───────────┼───────────────────────────────────────────┤
+│ Expired token        │   401     │ exp claim < current time → JWT library    │
+│ (after 24 hours)     │           │ throws ExpiredJwtException                │
+├──────────────────────┼───────────┼───────────────────────────────────────────┤
+│ USER accessing       │   403     │ Token is valid but role="USER" trying     │
+│ /admin/* paths       │           │ to access /admin → FORBIDDEN              │
+├──────────────────────┼───────────┼───────────────────────────────────────────┤
+│ Valid token, valid   │   200     │ All checks pass → forward to downstream   │
+│ role for the path    │           │ service with X-User-* headers             │
+└──────────────────────┴───────────┴───────────────────────────────────────────┘
+
+9. API GATEWAY ROUTE MAP
+━━━━━━━━━━━━━━━━━━━━━━━━
+┌────────────────────────────────────────────────────────────────────────────┐
+│                     API GATEWAY ROUTING TABLE (:8086)                      │
+│                                                                            │
+│  Incoming Path            │  Routed To             │  JWT Required?        │
+│  ─────────────────────────┼────────────────────────┼─────────────────────  │
+│  /auth/**                 │  user-service :8087    │  ❌ No (public)      │
+│  /user/**                 │  user-service :8087    │  ✅ Yes              │
+│  /api/users/**            │  CustomerMs   :8081    │  ✅ Yes              │
+│  /api/promotions/**       │  promotions   :8083    │  ✅ Yes              │
+│  /api/v1/transactions/**  │  Fraud_MS     :8082    │  ✅ Yes              │
+│  /api/analytics/**        │  Analytics    :8089    │  ✅ Yes              │
+│  /admin/**                │  (role check) varies   │  ✅ Yes + ADMIN only │
+│  /swagger/**, /v3/**      │  varies                │  ❌ No (dev docs)    │
+│  /public/**               │  varies                │  ❌ No               │
+└────────────────────────────────────────────────────────────────────────────┘
+
+
+10. COMPLETE REQUEST LIFECYCLE DIAGRAM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+This shows a full user journey from opening the app to making an authenticated call:
+
+  ╔═══════════════════════════════════════════════════════════════════════════╗
+  ║                      COMPLETE USER JOURNEY                                ║
+  ╚═══════════════════════════════════════════════════════════════════════════╝
+
+  ┌─ PHASE 1: REGISTRATION ──────────────────────────────────────────────────┐
+  │                                                                          │
+  │  User fills Register form                                                │
+  │       │                                                                  │
+  │       ▼                                                                  │
+  │  React sends POST /auth/register ──▶ Gateway ──▶ user-service           │
+  │       │                               (no JWT)   (BCrypt hash + save)    │
+  │       ▼                                                                  │
+  │  Success popup → Navigate to /login                                      │
+  └──────────────────────────────────────────────────────────────────────────┘
+       │
+       ▼
+  ┌─ PHASE 2: LOGIN ─────────────────────────────────────────────────────────┐
+  │                                                                          │
+  │  User fills Login form (email + password + role toggle)                  │
+  │       │                                                                  │
+  │       ▼                                                                  │
+  │  React sends POST /auth/login ──▶ Gateway ──▶ user-service              │
+  │       │                            (no JWT)   (verify password)          │
+  │       │                                       (generate JWT token)       │
+  │       ▼                                                                  │
+  │  Response: { token: "eyJhb...", role: "USER" }                           │
+  │       │                                                                  │
+  │       ▼                                                                  │
+  │  Frontend: localStorage.setItem('token', token)                          │
+  │  Frontend: localStorage.setItem('role', role)                            │
+  │  Frontend: Role mismatch check (selected vs actual)                      │
+  │  Frontend: Navigate to /user or /admin                                   │
+  └──────────────────────────────────────────────────────────────────────────┘
+       │
+       ▼
+  ┌─ PHASE 3: AUTHENTICATED BROWSING ───────────────────────────────────────┐
+  │                                                                          │
+  │  User visits Dashboard / Profile / Offers etc.                           │
+  │       │                                                                  │
+  │       ▼                                                                  │
+  │  ┌─────────────────────────────────────────────────┐                     │
+  │  │  Axios Interceptor (runs on EVERY request):     │                     │
+  │  │                                                 │                     │
+  │  │  const token = localStorage.getItem('token')    │                     │
+  │  │  if (token) {                                   │                     │
+  │  │    config.headers.Authorization = `Bearer ${t}` │                     │
+  │  │  }                                              │                     │
+  │  └─────────────────────────────────────────────────┘                     │
+  │       │                                                                  │
+  │       ▼                                                                  │
+  │  Request hits API Gateway (:8086)                                        │
+  │       │                                                                  │
+  │       ▼                                                                  │
+  │  ┌─────────────────────────────────────────────────┐                     │
+  │  │  JwtAuthFilter (GlobalFilter):                  │                     │
+  │  │                                                 │                     │
+  │  │  1. Is path /auth or /public? → Skip            │                     │
+  │  │  2. Extract "Bearer xxx" from header            │                     │
+  │  │  3. Parse JWT with shared secret                │                     │
+  │  │  4. Validate signature + expiration             │                     │
+  │  │  5. Extract userId, role, email from claims     │                     │
+  │  │  6. If /admin path → check role == ADMIN        │                     │
+  │  │  7. Add X-User-Id, X-User-Role, X-User-Email   │                     │
+  │  │     headers to forwarded request                │                     │
+  │  │  8. Forward to correct microservice             │                     │
+  │  └─────────────────────────────────────────────────┘                     │
+  │       │                                                                  │
+  │       ▼                                                                  │
+  │  Downstream microservice receives request                                │
+  │  with X-User-* headers (can identify user                                │
+  │  without needing to parse JWT again)                                     │
+  │       │                                                                  │
+  │       ▼                                                                  │
+  │  Response flows back: Service → Gateway → React → Render UI              │
+  └──────────────────────────────────────────────────────────────────────────┘
+       │
+       ▼
+  ┌─ PHASE 4: LOGOUT / EXPIRY ──────────────────────────────────────────────┐
+  │                                                                          │
+  │  Logout:  localStorage.removeItem('token')                               │
+  │           localStorage.removeItem('role')                                │
+  │           Navigate to /login                                             │
+  │                                                                          │
+  │  Expiry:  Token expires after 24h                                        │
+  │           Next API call → Gateway rejects with 401                       │
+  │           Frontend should redirect to /login                             │
+  └──────────────────────────────────────────────────────────────────────────┘
+
+
+11. FILE REFERENCE — WHERE EACH PIECE LIVES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Component                 │ File                                            │
+├───────────────────────────┼─────────────────────────────────────────────────┤
+│ JWT Token Generation      │ user-service/.../util/JwtUtil.java              │
+│ Login & Register API      │ user-service/.../controller/AuthController.java │
+│ Password Hashing          │ user-service/.../config/SecurityConfig.java     │
+│ JWT Secret (user-service) │ user-service/src/main/resources/                │
+│                           │   application.properties (jwt.secret)           │
+│                           │                                                 │
+│ Gateway JWT Filter        │ apigateway/.../filter/JwtAuthFilter.java        │
+│ Gateway Routes            │ apigateway/src/main/resources/                  │
+│                           │   application.properties                        │
+│ JWT Secret (gateway)      │ apigateway/src/main/resources/                  │
+│                           │   application.properties (jwt.secret)           │
+│                           │                                                 │
+│ Axios Client + Interceptor│ frontend/src/api/client.js                      │
+│ Token Storage (Login)     │ frontend/src/pages/auth/Login.jsx               │
+│ User Context (auto-fetch) │ frontend/src/context/UserContext.jsx            │
+│ Protected Routes          │ frontend/src/components/ProtectedRoute.jsx      │
+│ Admin Routes              │ frontend/src/components/AdminRoute.jsx          │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+
+12. SECURITY SUMMARY
+━━━━━━━━━━━━━━━━━━━━
+  ✅ Stateless authentication — no server-side sessions
+  ✅ Token expiration — 24 hours
+  ✅ Shared secret — same Base64 key in user-service & gateway
+  ✅ Role-based access — /admin paths restricted to ADMIN role only
+  ✅ Public paths whitelisted — /auth, /public, /swagger
+  ✅ Password hashing — BCrypt via Spring Security
+  ✅ Header forwarding — X-User-Id/Role/Email passed to downstream
+  ✅ CORS configured — only localhost:5173, 5174 allowed
+  ✅ Centralized gate — ALL requests pass through API Gateway filter
