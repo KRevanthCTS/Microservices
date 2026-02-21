@@ -277,9 +277,6 @@ public class Pointsservice {
     /**
      * Get all offers available for a specific tier
      */
-    // public List<Offers> getOffersByTier(String tier) {
-    //     return offerRepository.findByTier(tier);
-    // }
     private void sendToFraudDetection(Transaction transaction) {
         try {
             // Only send REDEMPTIONS to fraud detection, not CLAIMS

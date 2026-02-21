@@ -39,6 +39,12 @@
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
 
+        <!-- LOAD BALANCER -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+
         <!-- SWAGGER / OPENAPI (FOR GATEWAY - WEBFLUX) -->
         <dependency>
             <groupId>org.springdoc</groupId>

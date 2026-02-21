@@ -1,5 +1,9 @@
 package com.user.service.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import com.user.service.client.CustomerServiceClient;
 import com.user.service.dto.CustomerProfileDto;
 import com.user.service.dto.LoginDto;
@@ -7,9 +11,6 @@ import com.user.service.dto.UserDto;
 import com.user.service.model.Role;
 import com.user.service.model.User;
 import com.user.service.repository.UserRepository;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class UserService {
@@ -62,36 +63,6 @@ public class UserService {
         }
         return user;
     }
-//
-//    public CustomerProfile getCustomerProfile(Long userId) {
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new RuntimeException("User not found"));
-//        return user.getProfile();
-//    }
-//
-//    public CustomerProfile updateCustomerProfile(Long userId, CustomerProfileDto profileDto) {
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new RuntimeException("User not found"));
-//
-//        CustomerProfile profile = user.getProfile();
-//        if (profile == null) {
-//            profile = new CustomerProfile();
-//            profile.setUser(user);
-//        }
-//
-//        // Update fields if provided
-//        if (profileDto.getCommunication() != null)
-//            profile.setCommunication(profileDto.getCommunication());
-//        if (profileDto.getPreferences() != null)
-//            profile.setPreferences(profileDto.getPreferences());
-//        // Loyalty points updates usually come from transactions, but allowing manual
-//        // update here for demo
-//        // Assuming points update logic is handled elsewhere or passed here.
-//        // For simplicity, just update preferences/communication as requested for
-//        // "profile section".
-//
-//        return profileRepository.save(profile);
-//    }
 
     public java.util.List<User> findAllUsers() {
         return userRepository.findAll();
@@ -100,5 +71,12 @@ public class UserService {
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    public void resetPassword(String email, String newPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 }

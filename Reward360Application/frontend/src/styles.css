@@ -1444,3 +1444,190 @@ main {
 .role-list input[type="radio"] {
   margin-right: 8px;
 }
+
+/* ══════════════════════════════════════
+   Forgot Password & OTP Verify Styles
+   ══════════════════════════════════════ */
+
+/* Icon circle (centered above heading) */
+.auth-icon-circle {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  border-radius: 50%;
+  border: 2px solid #c7d2fe;
+}
+.auth-icon-success {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border-color: #6ee7b7;
+}
+
+/* Mock OTP hint */
+.auth-mock-hint {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 4px 12px;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #92400e;
+}
+.auth-otp-hint {
+  font-weight: 800;
+  color: #b45309;
+  letter-spacing: 3px;
+  font-size: 15px;
+}
+
+/* Link button (styled as text link) */
+.auth-link-btn {
+  background: none;
+  border: none;
+  color: #0b5ed7;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.auth-link-btn:hover {
+  color: #7c3aed;
+  text-decoration: underline;
+}
+.auth-link-disabled {
+  color: #94a3b8 !important;
+  cursor: not-allowed;
+}
+.auth-link-disabled:hover {
+  text-decoration: none;
+  color: #94a3b8 !important;
+}
+
+/* Loading spinner in buttons */
+.auth-btn-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.auth-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: auth-spin 0.6s linear infinite;
+}
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── OTP 6-box input ── */
+.auth-otp-boxes {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 8px 0 4px;
+}
+.auth-otp-input {
+  width: 52px;
+  height: 60px;
+  text-align: center;
+  font-size: 26px;
+  font-weight: 800;
+  color: #1a1a2e;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f9fafb;
+  outline: none;
+  transition: all 0.2s;
+  caret-color: #0b5ed7;
+}
+.auth-otp-input:focus {
+  border-color: #0b5ed7;
+  box-shadow: 0 0 0 3px rgba(11, 94, 215, 0.12);
+  background: #fff;
+  transform: scale(1.05);
+}
+.auth-otp-filled {
+  border-color: #0b5ed7;
+  background: #eef2ff;
+  color: #0b5ed7;
+}
+
+/* ── Password reset popup ── */
+.auth-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.auth-popup-box {
+  background: #fff;
+  border-radius: 18px;
+  padding: 40px 36px;
+  text-align: center;
+  max-width: 360px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+.auth-popup-icon {
+  font-size: 56px;
+  margin-bottom: 12px;
+  animation: auth-bounce 0.6s ease;
+}
+@keyframes auth-bounce {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.auth-popup-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #059669;
+  margin-bottom: 8px;
+}
+.auth-popup-msg {
+  font-size: 14px;
+  color: #64748b;
+}
+
+/* Disabled submit */
+.auth-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* OTP responsive */
+@media (max-width: 480px) {
+  .auth-otp-input {
+    width: 42px;
+    height: 50px;
+    font-size: 22px;
+    border-radius: 10px;
+  }
+  .auth-otp-boxes {
+    gap: 6px;
+  }
+}
